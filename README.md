@@ -81,20 +81,14 @@ You can log in using the credentials you created during the superuser setup or c
 
 ## Screenshots
 
-### Login Page
+<!-- ### Login Page
 ![Login Page](screenshots/login.png)
 
 ### Dashboard
 ![Dashboard](screenshots/dashboard.png)
 
 ### Attendance Management
-![Attendance Management](screenshots/attendance.png)
+![Attendance Management](screenshots/attendance.png) -->
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-**Note**: Replace the image paths in the "Screenshots" section with actual screenshots from your project.
-
-This `README.md` provides all necessary information for someone to understand, install, and use your Django project. Make sure to adjust the paths, links, and descriptions according to your specific project details.
