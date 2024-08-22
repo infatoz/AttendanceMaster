@@ -1,0 +1,113 @@
+{% extends "administrator/base.html" %} 
+{% block title %} Adminstrator Dashboard{% endblock title %} 
+{% block content %}
+<div class="pagetitle">
+  <h1>View All Attendance Books</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="#">Attendance Books</a></li>
+      <li class="breadcrumb-item">View All Attendance Books</li>
+    </ol>
+  </nav>
+</div>
+<!-- End Page Title -->
+
+<section class="section">
+  <div class="row">
+    <div class="col-lg-12">
+      {% if messages %}
+      <ul class="messages">
+        {% for message in messages %} 
+        {% if message.tags == 'success' %}
+        <div
+          class="alert alert-success alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-check-circle me-1"></i>
+          {{message}}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endif %} 
+        {% if message.tags == 'error' %}
+        <div
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-exclamation-octagon me-1"></i>
+          {{message}}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endif %} 
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Attendance Books</h5>
+
+          <table
+            id="attendanceBooksTable"
+            class="table table-bordered datatable"
+          >
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Book Code</th>
+                <th>Book Type</th>
+                <!-- <th>Created At</th> -->
+                <th>Teachers</th>
+                <!-- <th>Students</th> -->
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for book in attendance_books %}
+              <tr>
+                <td>{{ book.id }}</td>
+                <td>{{ book.name }}</td>
+                <td>{{ book.book_code }}</td>
+                <td>{{ book.get_book_type_display }}</td>
+                <!-- <td>{{ book.created_at }}</td> -->
+                <td>
+                  <ul>
+                    {% for teacher in book.teachers.all %}
+                    <li>{{ teacher.user.fullname }}</li>
+                    {% endfor %}
+                  </ul>
+                </td>
+                <!-- <td>
+                  <ul>
+                    {% for student in book.students.all %}
+                    <li>{{ student.user.fullname }}</li>
+                    {% endfor %}
+                  </ul>
+                </td> -->
+                <td>
+                  <a href="{% url 'mark_attendance' book.id  %}" class="btn btn-sm btn-primary">Mark Attendance</a>
+                  <a href="{% url 'view_attendance_records' book.id%}" class="btn btn-sm btn-secondary">View Attendance</a>
+                  <a href="{% url 'view_attendance_records' book.id%}" class="btn btn-sm btn-warning">Edit</a>
+                  <a href="{% url 'delete_attendance_book' book.id%}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}

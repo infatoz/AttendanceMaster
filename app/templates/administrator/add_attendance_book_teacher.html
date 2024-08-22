@@ -1,0 +1,100 @@
+{% extends "administrator/base.html" %}
+{% block title %} Add Teachers to Attendance Book {% endblock title %}
+{% block content %}
+<div class="pagetitle">
+    <h1>Add Teachers to Attendance Book</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+        <li class="breadcrumb-item">Add Teachers to Attendance Book</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+              {% if message.tags == 'success' %}
+              <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-1"></i>
+                {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+              {% endif %}
+              {% if message.tags == 'error' %}
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-octagon me-1"></i>
+                  {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+              {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+        <div class="card">
+          <div class="card-body">
+
+            <h5 class="card-title">Select Teachers for Book</h5>
+            <input type="checkbox" id="selectAllTeachers">
+            <form method="post">
+              {% csrf_token %}
+              <button type="submit">Add Teachers & Next</button>
+            <!-- Table with stripped rows -->
+            <table class="table table-bordered" id="teachersTable">
+              <thead>
+                <tr>
+                    <th>    
+                      Select
+                    </th>
+                    <th>Staff ID</th>
+                    <th>Name</th>
+                    <th>Department</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for teacher in teachers %}
+                <tr>
+                    <td><input type="checkbox" name="teachers" value="{{ teacher.user.userid }}" class="teacherCheckbox"></td>
+                    <td>{{ teacher.user.userid }}</td>
+                    <td>{{ teacher.user.fullname }}</td>
+                    <td>{{ teacher.department }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </form>
+            <!-- End Table with stripped rows -->
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <script>
+    $(document).ready(function() {
+        // Initialize DataTables
+        $('#teachersTable').DataTable();
+  
+    
+        // Select All Teachers
+        $('#selectAllTeachers').click(function() {
+            $('.teacherCheckbox').prop('checked', this.checked);
+        });
+    
+    
+        // If any teacher checkbox is unchecked, uncheck Select All
+        $('.teacherCheckbox').click(function() {
+            if (!$(this).prop('checked')) {
+                $('#selectAllTeachers').prop('checked', false);
+            }
+        });
+    });
+    </script>
+{% endblock content %}

@@ -1,0 +1,90 @@
+{% extends "administrator/base.html" %}
+{% load custom_filters %}
+{% block title %} Edit Student {% endblock title %}
+{% block content %}
+<div class="pagetitle">
+    <h1>Edit Student</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Students</a></li>
+        <li class="breadcrumb-item">Edit Student</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+
+  <section class="section">
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+              {% if message.tags == 'success' %}
+              <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-1"></i>
+                {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+              {% endif %}
+              {% if message.tags == 'error' %}
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-octagon me-1"></i>
+                  {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+              {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <h2>Attendance Records for {{ attendance_book.name }}</h2>
+
+    <table class="table table-bordered stripe row-border order-column" id="example" style="width:100%">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                {% for date, sessions in records_by_date_session.items %}
+                    {% for session in sessions %}
+                        <th>{{ date }} (Session {{ session }})</th>
+                    {% endfor %}
+                {% endfor %}
+                <th>Total Count</th>
+                <th>Attendance %</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+                <tr>
+                    <td>{{ student.user.fullname }}</td>
+                    {% for date, sessions in records_by_date_session.items %}
+                        {% for session, records in sessions.items %}
+                            <td>{{ records|get_item:student.user.userid }}</td>
+                        {% endfor %}
+                    {% endfor %}
+                    <td>{{ student_attendance|get_item:student.user.userid|get_item:'count' }}</td>
+                    <td>{{ student_attendance|get_item:student.user.userid|get_item:'percentage' }}%</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <style>
+      th, td { white-space: nowrap; }
+    div.dataTables_wrapper {
+        width: 800px;
+        margin: 0 auto;
+    }
+    </style>
+
+    <script>
+      $('#example').DataTable({
+        fixedColumns: {
+        start: 1,
+        end: 1
+        },
+        paging: false,
+        scrollCollapse: true,
+        scrollX: true,
+        scrollY: 300
+      });
+    </script>
+
+    
+  </section>
+{% endblock content %}
