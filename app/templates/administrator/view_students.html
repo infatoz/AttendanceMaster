@@ -1,88 +1,220 @@
-{% extends "administrator/base.html" %}
-{% block title %} Adminstrator Dashboard {% endblock title %}
+{% extends "administrator/base.html" %} 
+{% block title %} View All Students {% endblock title %} 
 {% block content %}
+
 <div class="pagetitle">
-    <h1>View All Students</h1>
-    <nav>
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-        <li class="breadcrumb-item">View All Students</li>
-      </ol>
-    </nav>
-  </div><!-- End Page Title -->
+  <h1>View All Students</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="{% url 'view_students' %}">Students</a>
+      </li>
+      <li class="breadcrumb-item">View All Students</li>
+    </ol>
+  </nav>
+</div>
+<!-- End Page Title -->
 
-  <section class="section mb-3">
-    <div class="btn-group" role="group" aria-label="Menu">
-      <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'view_students' %}"><i class="bi bi-eye"></i> View</a>
-      <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'add_student' %}"><i class="bi bi-plus"></i> Add</a>
-      <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'upload_students_csv' %}"><i class="bi bi-upload"></i> Upload</a>
-    </div>
-  </section>
+<section class="section mb-3">
+  <div class="btn-group" role="group" aria-label="Menu">
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'view_students' %}"
+      ><i class="bi bi-eye"></i> View</a
+    >
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'add_student' %}"
+      ><i class="bi bi-plus"></i> Add</a
+    >
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'upload_students_csv' %}"
+      ><i class="bi bi-upload"></i> Upload</a
+    >
+  </div>
+</section>
 
-  <section class="section">
-    <div class="row">
-      <div class="col-lg-12">
+<section class="section">
+  <div class="row">
+    <div class="col-lg-12">
+      {% if messages %}
+      <ul class="messages">
+        {% for message in messages %} {% if message.tags == 'success' %}
+        <div
+          class="alert alert-success alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-check-circle me-1"></i>
+          {{message}}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endif %} {% if message.tags == 'error' %}
+        <div
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-exclamation-octagon me-1"></i>
+          {{message}}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endif %} {% endfor %}
+      </ul>
+      {% endif %}
 
-        {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-              {% if message.tags == 'success' %}
-              <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-1"></i>
-                {{message}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-              {% endif %}
-              {% if message.tags == 'error' %}
-              <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-octagon me-1"></i>
-                  {{message}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-              {% endif %}
-            {% endfor %}
-        </ul>
-    {% endif %}
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">All Students</h5>
 
-        <div class="card">
-          <div class="card-body">
-
-            <h5 class="card-title">Students</h5>
-
-            <!-- Table with stripped rows -->
-            <table class="table table-bordered datatable">
+          <!-- Table with stripped rows -->
+          <table
+            class="table table-bordered display nowrap"
+            id="studentsTable"
+            style="width: 100%"
+          >
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Course</th>
-                    <th>Actions</th>
-                </tr>
+              <tr>
+                <th>Reg No</th>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Course</th>
+                <th>Year</th>
+                <th>Section</th>
+                <th>Email</th>
+                <th>Parent Phone No</th>
+                <th>Phone</th>
+                <th>Actions</th>
+              </tr>
             </thead>
             <tbody>
-                {% for student in students %}
-                    <tr>
-                        <td>{{ student.user.userid }}</td>
-                        <td>{{ student.user.fullname }}</td>
-                        <td>{{ student.user.email }}</td>
-                        <td>{{ student.user.phone_no }}</td>
-                        <td>{{ student.course }}</td>
-                        <td>
-                          <a href="{% url 'edit_student' student.user.userid %}" class="btn btn-warning btn-sm">Edit</a>
-                          <a href="{% url 'delete_student' student.user.userid %}" class="btn btn-danger btn-sm">Delete</a>
-                        </td>
-                    </tr>
-                {% endfor %}
+              {% for student in students %}
+              <tr>
+                <td>{{ student.user.userid }}</td>
+                <td>
+                  <img
+                    src="{{ student.photo_url }}"
+                    alt="{{ student.user.fullname }}"
+                    title="{{ student.user.fullname }}"
+                    style="height: 80px"
+                  />
+                </td>
+                <td>{{ student.user.fullname }}</td>
+                <td>{{ student.course }}</td>
+                <td>{{ student.year }}</td>
+                <td>{{ student.section }}</td>
+                <td>{{ student.user.email }}</td>
+                <td>{{ student.parent_phoneno }}</td>
+                <td>{{ student.user.phone_no }}</td>
+                
+                <td>
+                  <!-- <a
+                    href="{% url 'edit_student' student.user.userid %}"
+                    class="btn btn-warning btn-sm"
+                    >Edit</a
+                  >
+                  <a
+                    href="{% url 'delete_student' student.user.userid %}"
+                    class="btn btn-danger btn-sm"
+                    >Delete</a
+                  > -->
+                  <div class="btn-group" role="group" aria-label="Action">
+                    <a
+                      role="button"
+                      class="btn btn-outline-secondary btn-sm"
+                      href="{% url 'edit_student' student.user.userid %}"
+                      ><i class="bi bi-pencil"></i> Edit</a
+                    >
+                    <a
+                      role="button"
+                      class="btn btn-outline-primary btn-sm"
+                      href="{% url 'delete_student' student.user.userid %}"
+                      ><i class="bi bi-trash"></i> Delete</a
+                    >
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
             </tbody>
-        </table>
-            <!-- End Table with stripped rows -->
-
-          </div>
+          </table>
+          <!-- End Table with stripped rows -->
         </div>
-
       </div>
     </div>
-  </section>
+  </div>
+</section>
+
+<script>
+  $(document).ready(function () {
+    $("#studentsTable").DataTable({
+      order: [[1, "asc"]],
+      fixedColumns: {
+        start: 1,
+        end: 1
+    },
+    paging: false,
+    scrollCollapse: true,
+    scrollX: true,
+    scrollY: 300,
+      pageLength: 50,
+      lengthMenu: [50, 100, 150, 200, 250, 500],
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          text: "Copy",
+          className: "btn btn-sm btn-outline-secondary",
+          exportOptions: {
+            columns: [0, 2, 3, 4, 5, 6, 7, 8], // Exclude the last column
+          },
+        },
+        {
+          extend: "csv",
+          text: "CSV",
+          className: "btn btn-sm btn-outline-secondary",
+          exportOptions: {
+            columns: [0, 2, 3, 4, 5, 6, 7, 8], // Exclude the last column
+          },
+        },
+        {
+          extend: "excel",
+          text: "Excel",
+          className: "btn btn-sm btn-outline-secondary",
+          exportOptions: {
+            columns: [0, 2, 3, 4, 5, 6, 7, 8], // Exclude the last column
+          },
+        },
+        {
+          extend: "pdf",
+          text: "PDF",
+          className: "btn btn-sm btn-outline-secondary",
+          exportOptions: {
+            columns: [0, 2, 3, 4, 5, 6, 7, 8], // Exclude the last column
+          },
+        },
+        {
+          extend: "print",
+          text: "Print",
+          className: "btn btn-sm btn-outline-secondary",
+          exportOptions: {
+            columns: [0, 2, 3, 4, 5, 6, 7, 8], // Exclude the last column
+          },
+        },
+      ],
+    });
+  });
+</script>
+
 {% endblock content %}

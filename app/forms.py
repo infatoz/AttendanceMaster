@@ -32,7 +32,7 @@ class TeacherRegistrationForm(forms.ModelForm):
 class StudentRegistrationForm(forms.ModelForm):
     class Meta:
         model = Student
-        fields = ['course', 'year', 'section', 'gender', 'dob', 'photo_url']
+        fields = ['parent_phoneno','course', 'year', 'section', 'gender', 'dob', 'photo_url']
 
 class AdminRegistrationForm(forms.ModelForm):
     class Meta:

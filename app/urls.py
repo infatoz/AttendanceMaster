@@ -29,6 +29,6 @@ urlpatterns = [
     path('administrator/dashboard/department/delete/<str:dept_id>/', views.delete_department, name='delete_department'),
     path('administrator/dashboard/courses', views.view_courses, name='view_courses'),
     path('administrator/dashboard/course/add', views.add_course, name='add_course'),
-    # path('administrator/dashboard/course/edit/<str:course_id>/', views.edit_course, name='edit_course'),
-    # path('administrator/dashboard/course/delete/<str:course_id>/', views.delete_course, name='delete_course'),
+    path('administrator/dashboard/course/edit/<str:course_id>/', views.edit_course, name='edit_course'),
+    path('administrator/dashboard/course/delete/<str:course_id>/', views.delete_course, name='delete_course'),
 ]

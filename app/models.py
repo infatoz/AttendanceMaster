@@ -108,6 +108,7 @@ class Student(models.Model):
 
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,primary_key=True,unique=True)
     usn = models.CharField(max_length=10)
+    parent_phoneno = models.CharField(max_length=10,unique=False,null=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     year = models.CharField(max_length=10, choices=YEAR_CHOICES)
     section = models.CharField(max_length=10)

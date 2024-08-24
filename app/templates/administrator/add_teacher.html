@@ -14,9 +14,24 @@
 
 <section class="section mb-3">
   <div class="btn-group" role="group" aria-label="Menu">
-    <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'view_students' %}"><i class="bi bi-eye"></i> View</a>
-    <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'add_student' %}"><i class="bi bi-plus"></i> Add</a>
-    <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'upload_students_csv' %}"><i class="bi bi-upload"></i> Upload</a>
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'view_teachers' %}"
+      ><i class="bi bi-eye"></i> View</a
+    >
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'add_teacher' %}"
+      ><i class="bi bi-plus"></i> Add</a
+    >
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'upload_teachers_csv' %}"
+      ><i class="bi bi-upload"></i> Upload</a
+    >
   </div>
 </section>
 
@@ -82,7 +97,7 @@
             {% csrf_token %} 
             {{ user_form.as_p }} 
             {{ teacher_form.as_p }}
-            <button type="submit" class="btn btn-primary">Add Teacher</button>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle me-2"></i>Add Teacher</button>
           </form>
         </div>
       </div>

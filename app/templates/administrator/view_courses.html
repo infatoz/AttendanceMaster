@@ -1,76 +1,176 @@
-{% extends "administrator/base.html" %}
-{% block title %} Adminstrator Dashboard {% endblock title %}
+{% extends "administrator/base.html" %} 
+{% block title %} View Courses {% endblock title %}
 {% block content %}
+
 <div class="pagetitle">
-    <h1>View All Courses</h1>
-    <nav>
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Courses</a></li>
-        <li class="breadcrumb-item">View All Courses</li>
-      </ol>
-    </nav>
-  </div><!-- End Page Title -->
+  <h1>View All Courses</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'view_courses' %}">Courses</a></li>
+      <li class="breadcrumb-item">View All Courses</li>
+    </ol>
+  </nav>
+</div>
+<!-- End Page Title -->
 
-  <section class="section">
-    <div class="row">
-      <div class="col-lg-12">
+<section class="section mb-3">
+  <div class="btn-group" role="group" aria-label="Menu">
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'view_courses' %}"
+      ><i class="bi bi-eye"></i> View</a
+    >
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'add_course' %}"
+      ><i class="bi bi-plus"></i> Add</a
+    >
+  </div>
+</section>
 
-        {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-              {% if message.tags == 'success' %}
-              <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-1"></i>
-                {{message}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-              {% endif %}
-              {% if message.tags == 'error' %}
-              <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-octagon me-1"></i>
-                  {{message}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-              {% endif %}
-            {% endfor %}
-        </ul>
-    {% endif %}
+<section class="section">
+  <div class="row">
+    <div class="col-lg-12">
+      {% if messages %}
+      <ul class="messages">
+        {% for message in messages %} {% if message.tags == 'success' %}
+        <div
+          class="alert alert-success alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-check-circle me-1"></i>
+          {{message}}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endif %} {% if message.tags == 'error' %}
+        <div
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-exclamation-octagon me-1"></i>
+          {{message}}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endif %} {% endfor %}
+      </ul>
+      {% endif %}
 
-        <div class="card">
-          <div class="card-body">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">All Courses</h5>
 
-            <h5 class="card-title">Courses</h5>
-
-            <!-- Table with stripped rows -->
-            <table class="table table-bordered datatable">
+          <!-- Table with stripped rows -->
+          <table
+            class="table table-bordered display nowrap"
+            id="coursesTable"
+            style="width: 100%"
+          >
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Actions</th>
-                </tr>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Actions</th>
+              </tr>
             </thead>
             <tbody>
-                {% for course in courses %}
-                    <tr>
-                        <td>{{ course.course_id }}</td>
-                        <td>{{ course.name }}</td>
-                        <td>
-                          <a href="#edit" class="btn btn-sm btn-warning">Edit</a>
-                          <a href="#delete" class="btn btn-sm btn-danger">Delete</a>
-                          </td>
-                    </tr>
-                {% endfor %}
+              {% for course in courses %}
+              <tr>
+                <td>{{ course.course_id }}</td>
+                <td>{{ course.name }}</td>
+                <td>
+                  <!-- <a href="#edit" class="btn btn-sm btn-warning">Edit</a>
+                          <a href="#delete" class="btn btn-sm btn-danger">Delete</a> -->
+                  <div class="btn-group" role="group" aria-label="Action">
+                    <a
+                      role="button"
+                      class="btn btn-outline-secondary btn-sm"
+                      href="{% url 'edit_course' course.course_id %}"
+                      ><i class="bi bi-pencil"></i> Edit</a
+                    >
+                    <a
+                      role="button"
+                      class="btn btn-outline-primary btn-sm"
+                      href="{% url 'delete_course' course.course_id %}"
+                      ><i class="bi bi-trash"></i> Delete</a
+                    >
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
             </tbody>
-        </table>
-            <!-- End Table with stripped rows -->
-
-          </div>
+          </table>
+          <!-- End Table with stripped rows -->
         </div>
-
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
+<script>
+  $(document).ready(function () {
+    $("#coursesTable").DataTable({
+      order: [[2, "asc"]],
+      scrollX: true,
+      paging: true,
+      pageLength: 25,
+      lengthMenu: [25, 50, 75, 100],
+      // dom: "Bfrtip",
+      // buttons: [
+      //   {
+      //     extend: "copy",
+      //     text: "Copy",
+      //     className: "btn btn-sm btn-outline-secondary",
+      //     exportOptions: {
+      //       columns: [0, 2, 3, 4, 5,6], // Exclude the last column
+      //     },
+      //   },
+      //   {
+      //     extend: "csv",
+      //     text: "CSV",
+      //     className: "btn btn-sm btn-outline-secondary",
+      //     exportOptions: {
+      //       columns: [0, 2, 3, 4, 5,6], // Exclude the last column
+      //     },
+      //   },
+      //   {
+      //     extend: "excel",
+      //     text: "Excel",
+      //     className: "btn btn-sm btn-outline-secondary",
+      //     exportOptions: {
+      //       columns: [0, 2, 3, 4, 5,6], // Exclude the last column
+      //     },
+      //   },
+      //   {
+      //     extend: "pdf",
+      //     text: "PDF",
+      //     className: "btn btn-sm btn-outline-secondary",
+      //     exportOptions: {
+      //       columns: [0, 2, 3, 4, 5,6], // Exclude the last column
+      //     },
+      //   },
+      //   {
+      //     extend: "print",
+      //     text: "Print",
+      //     className: "btn btn-sm btn-outline-secondary",
+      //     exportOptions: {
+      //       columns: [0, 2, 3, 4, 5,6], // Exclude the last column
+      //     },
+      //   },
+      // ],
+    });
+  });
+</script>
 
 {% endblock content %}

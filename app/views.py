@@ -182,6 +182,7 @@ def add_student(request):
             student.user = user
             student.save()
             # login(request, user)
+            messages.success(request, 'Student added successfully!')
             return redirect('view_students')
     else:
         user_form = CustomUserCreationForm()
@@ -584,4 +585,27 @@ def add_course(request):
 def view_courses(request):
     courses = Course.objects.all()
     return render(request, 'administrator/view_courses.html',{'courses': courses})
+
+
+# Edit Course
+def edit_course(request, course_id):
+    course = get_object_or_404(Course, course_id=course_id)
+    if request.method == 'POST':
+        form = AddCourseForm(request.POST, instance=course)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Course updated successfully!')
+            return redirect('view_courses')
+    else:
+        form = AddCourseForm(instance=course)
+    return render(request, 'administrator/edit_course.html', {'form': form})
+
+# Delete Course
+def delete_course(request, course_id):
+    course = get_object_or_404(Course, course_id=course_id)
+    if request.method == 'POST':
+        course.delete()
+        messages.success(request, 'Course deleted successfully!')
+        return redirect('view_courses')
+    return render(request, 'administrator/delete_course.html', {'course': course})
 

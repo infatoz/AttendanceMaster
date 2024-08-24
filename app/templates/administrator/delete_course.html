@@ -1,13 +1,13 @@
 {% extends "administrator/base.html" %}
-{% block title %} Delete Department - {{ department.name }} {% endblock title %} 
+{% block title %} Delete Course - {{ course.name }} {% endblock title %} 
 {% block content %}
 
 <div class="pagetitle">
-  <h1>Delete Department</h1>
+  <h1>Delete Course</h1>
   <nav>
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'view_departments' %}">Departments</a></li>
-      <li class="breadcrumb-item">Delete Department</li>
+      <li class="breadcrumb-item"><a href="{% url 'view_courses' %}">Courses</a></li>
+      <li class="breadcrumb-item">Delete Course</li>
     </ol>
   </nav>
 </div>
@@ -20,9 +20,9 @@
         <div class="card-header">Confirm Delete?</div>
         <div class="card-body">
           <p class="card-title">
-            Are you sure you want to delete the department
+            Are you sure you want to delete the course
             <strong
-              >{{ department.name }} ({{ department.dept_id }})</strong
+              >{{ course.name }} ({{ course.course_id }})</strong
             >?
           </p>
         </div>
@@ -32,7 +32,7 @@
             <button type="submit" class="btn btn-danger btn-sm">
               <i class="bi bi-check-lg me-2"></i>Delete
             </button>
-            <a href="{% url 'view_departments' %}" class="btn btn-secondary btn-sm"
+            <a href="{% url 'view_courses' %}" class="btn btn-secondary btn-sm"
               ><i class="bi bi-x-lg me-2"></i>Cancel</a
             >
           </form>
