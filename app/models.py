@@ -1,4 +1,5 @@
 # models.py
+from django import forms
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
@@ -72,7 +73,7 @@ class Department(models.Model):
 # Admin Model
 class Admin(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,primary_key=True,unique=True)
-    photo_url = models.CharField(max_length=50)
+    photo_url = models.CharField(max_length=100)
 
     def __str__(self):
         return f'{self.user.fullname}'
@@ -81,15 +82,15 @@ class Admin(models.Model):
 class HOD(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,primary_key=True,unique=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    photo_url = models.CharField(max_length=50)
+    photo_url = models.CharField(max_length=100)
 
 
 # Teacher Model
 class Teacher(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,primary_key=True,unique=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    photo_url = models.CharField(max_length=50)
-
+    photo_url = models.CharField(max_length=100)
+    
 
 # Student Model
 class Student(models.Model):
@@ -112,7 +113,7 @@ class Student(models.Model):
     section = models.CharField(max_length=10)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     dob = models.DateField()
-    photo_url = models.CharField(max_length=50)
+    photo_url = models.CharField(max_length=100)
 
 
 # Attendance Book Model

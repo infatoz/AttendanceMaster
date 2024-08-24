@@ -5,16 +5,41 @@
   <h1>Add New Teacher/Staff</h1>
   <nav>
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'view_teachers' %}">Teachers</a></li>
       <li class="breadcrumb-item">Add New Teacher/Staff</li>
     </ol>
   </nav>
 </div>
 <!-- End Page Title -->
 
+<section class="section mb-3">
+  <div class="btn-group" role="group" aria-label="Menu">
+    <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'view_students' %}"><i class="bi bi-eye"></i> View</a>
+    <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'add_student' %}"><i class="bi bi-plus"></i> Add</a>
+    <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'upload_students_csv' %}"><i class="bi bi-upload"></i> Upload</a>
+  </div>
+</section>
+
 <section class="section">
   <div class="row">
     <div class="col-lg-12">
+
+      <!-- Display form errors in an alert -->
+      {% if user_form.errors or teacher_form.errors %}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-octagon me-1"></i>
+        <ul>
+          {% for field, errors in user_form.errors.items %}
+            <li>{{ field|capfirst }}: {{ errors|striptags }}</li>
+          {% endfor %}
+          {% for field, errors in teacher_form.errors.items %}
+            <li>{{ field|capfirst }}: {{ errors|striptags }}</li>
+          {% endfor %}
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endif %}
+      
       {% if messages %}
       <ul class="messages">
         {% for message in messages %} {% if message.tags == 'success' %}
@@ -54,7 +79,9 @@
           <h5 class="card-title">Add New Teacher</h5>
 
           <form method="post">
-            {% csrf_token %} {{ user_form.as_p }} {{ teacher_form.as_p }}
+            {% csrf_token %} 
+            {{ user_form.as_p }} 
+            {{ teacher_form.as_p }}
             <button type="submit" class="btn btn-primary">Add Teacher</button>
           </form>
         </div>

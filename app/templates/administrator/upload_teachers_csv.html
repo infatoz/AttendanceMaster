@@ -1,17 +1,30 @@
 {% extends "administrator/base.html" %}
-{% block title %} Add Teacher {% endblock title %}
+{% block title %} Upload Teachers CSV {% endblock title %}
 {% block content %}
+{% load static %}
 <div class="pagetitle">
     <h1>Upload Teachers</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'view_teachers' %}">Teachers</a></li>
         <li class="breadcrumb-item">Upload Teachers</li>
       </ol>
     </nav>
   </div><!-- End Page Title -->
 
+  <section class="section mb-3">
+    <div class="btn-group" role="group" aria-label="Menu">
+      <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'view_teachers' %}"><i class="bi bi-eye"></i> View</a>
+      <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'add_teacher' %}"><i class="bi bi-plus"></i> Add</a>
+      <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'upload_teachers_csv' %}"><i class="bi bi-upload"></i> Upload</a>
+    </div>
+  </section>
+
   <section class="section">
+
+    <div class="row">
+      <div class="col-lg-12">
+
     {% if messages %}
     <ul class="messages">
         {% for message in messages %}
@@ -33,11 +46,19 @@
     </ul>
 {% endif %}
 
-
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Bulk Upload Teachers</h5>
+    <h6 class="card-subtitle mb-2 text-muted"><a href="{% static 'assets/docs/teachers_template.csv' %}" download target="_"><i class="bi bi-download me-2"></i>Download CSV Template</a></h6>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Upload CSV</button>
+    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-upload me-2"></i>Upload CSV</button>
 </form>
+</div>
+</div>
+</div>
+</div>
+</div>
   </section>
 {% endblock content %}

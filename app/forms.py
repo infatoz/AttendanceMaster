@@ -64,8 +64,37 @@ class AttendanceBookForm(forms.ModelForm):
 #         model = AttendanceBook
 #         fields = ['students']
 
+# class TeacherCSVUploadForm(forms.Form):
+#     csv_file = forms.FileField(required=True)
+
 class TeacherCSVUploadForm(forms.Form):
-    csv_file = forms.FileField()
+    csv_file = forms.FileField(
+        required=True,
+        label="Upload CSV File",  # Custom label
+        widget=forms.FileInput(attrs={'class': 'form-control'})  # Custom class
+    )
+
+    def clean_csv_file(self):
+        file = self.cleaned_data.get('csv_file')
+
+        # Check the file extension
+        if not file.name.endswith('.csv'):
+            raise forms.ValidationError("Only .csv files are allowed.")
+
+        return file
 
 class StudentCSVUploadForm(forms.Form):
-    csv_file = forms.FileField()
+    csv_file = forms.FileField(
+        required=True,
+        label="Upload CSV File",  # Custom label
+        widget=forms.FileInput(attrs={'class': 'form-control'})  # Custom class
+    )
+
+    def clean_csv_file(self):
+        file = self.cleaned_data.get('csv_file')
+
+        # Check the file extension
+        if not file.name.endswith('.csv'):
+            raise forms.ValidationError("Only .csv files are allowed.")
+
+        return file

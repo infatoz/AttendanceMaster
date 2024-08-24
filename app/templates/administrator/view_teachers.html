@@ -12,6 +12,14 @@
 </div>
 <!-- End Page Title -->
 
+<section class="section mb-3">
+  <div class="btn-group" role="group" aria-label="Menu">
+    <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'view_teachers' %}"><i class="bi bi-eye"></i> View</a>
+    <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'add_teacher' %}"><i class="bi bi-plus"></i> Add</a>
+    <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'upload_teachers_csv' %}"><i class="bi bi-upload"></i> Upload</a>
+  </div>
+</section>
+
 <section class="section">
   <div class="row">
     <div class="col-lg-12">
@@ -54,10 +62,11 @@
           <h5 class="card-title">All Teachers</h5>
 
           <!-- Table with stripped rows -->
-          <table class="table table-bordered datatable">
+          <table class="table table-bordered display nowrap" id="teachersTable" style="width:100%">
             <thead>
               <tr>
                 <th>Staff ID</th>
+                <th>Photo</th>
                 <th>Fullname</th>
                 <th>Email</th>
                 <th>Phone</th>
@@ -69,12 +78,13 @@
               {% for teacher in teachers %}
               <tr>
                 <td>{{ teacher.user.userid }}</td>
+                <td><img src="{{ teacher.photo_url }}" alt="{{ teacher.user.fullname }}" title="{{ teacher.user.fullname }}" style="height: 80px;"/></td>
                 <td>{{ teacher.user.fullname }}</td>
                 <td>{{ teacher.user.email }}</td>
                 <td>{{ teacher.user.phone_no }}</td>
                 <td>{{ teacher.department }}</td>
                 <td>
-                  <a
+                  <!-- <a
                     href="{% url 'edit_teacher' teacher.user.userid %}"
                     class="btn btn-warning btn-sm"
                     >Edit</a
@@ -83,7 +93,11 @@
                     href="{% url 'delete_teacher' teacher.user.userid %}"
                     class="btn btn-danger btn-sm"
                     >Delete</a
-                  >
+                  > -->
+                  <div class="btn-group" role="group" aria-label="Action">
+                    <a role="button" class="btn btn-outline-secondary btn-sm" href="{% url 'edit_teacher' teacher.user.userid %}"><i class="bi bi-pencil"></i> Edit</a>
+                    <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'delete_teacher' teacher.user.userid %}"><i class="bi bi-trash"></i> Delete</a>
+                  </div>
                 </td>
               </tr>
               {% endfor %}
@@ -94,4 +108,58 @@
     </div>
   </div>
 </section>
+
+<script>
+  $(document).ready(function() {
+    $('#teachersTable').DataTable({
+      order: [[1, 'asc']],
+        paging: true,
+        pageLength: 50,
+        lengthMenu: [50, 100, 150, 200, 250,500],
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'copy',
+                text: 'Copy',
+                className:'btn btn-sm btn-outline-secondary',
+                exportOptions: {
+                    columns: ':not(:last-child)'  // Exclude the last column
+                }
+            },
+            {
+                extend: 'csv',
+                text: 'CSV',
+                className:'btn btn-sm btn-outline-secondary',
+                exportOptions: {
+                    columns: ':not(:last-child)'  // Exclude the last column
+                }
+            },
+            {
+                extend: 'excel',
+                text: 'Excel',
+                className:'btn btn-sm btn-outline-secondary',
+                exportOptions: {
+                    columns: ':not(:last-child)'  // Exclude the last column
+                }
+            },
+            {
+                extend: 'pdf',
+                text: 'PDF',
+                className: 'btn btn-sm btn-outline-secondary',  
+                exportOptions: {
+                    columns: ':not(:last-child)'  // Exclude the last column
+                }
+            },
+            {
+                extend: 'print',
+                text: 'Print',
+                className:'btn btn-sm btn-outline-secondary',
+                exportOptions: {
+                    columns: ':not(:last-child)'  // Exclude the last column
+                }
+            }
+        ]
+    });
+});
+</script>
 {% endblock content %}

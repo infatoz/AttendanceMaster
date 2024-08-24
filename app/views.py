@@ -61,6 +61,7 @@ def add_teacher(request):
             teacher.user = user
             teacher.save()
             # login(request, user)
+            messages.success(request, 'Teacher added successfully!')
             return redirect('view_teachers')
     else:
         user_form = CustomUserCreationForm()
@@ -129,7 +130,7 @@ def upload_teachers_csv(request):
                     fullname = row.get('fullname')
                     phone_no = row.get('phone_no')
                     email = row.get('email')
-                    department_name = row.get('department')
+                    dept_id = row.get('dept_id')
                     photo_url = row.get('photo_url')
                     
                     # Check if user already exists
@@ -148,7 +149,7 @@ def upload_teachers_csv(request):
                     user.save()
 
                     # Get or create department
-                    department, created = Department.objects.get_or_create(dept_id=department_name)
+                    department, created = Department.objects.get_or_create(dept_id=dept_id)
                     
                     # Create teacher
                     Teacher.objects.create(
