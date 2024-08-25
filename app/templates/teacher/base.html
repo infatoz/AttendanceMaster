@@ -1,0 +1,197 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+    <title>{% block title%}{%endblock title%} | Attendance Master</title>
+
+    <!-- Favicons -->
+    <link href="{% static 'assets/img/favicon.png' %}" rel="icon" />
+    <link href="{% static 'assets/img/apple-touch-icon.png' %}" rel="apple-touch-icon" />
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+        rel="stylesheet" />
+
+    <!-- Vendor CSS Files -->
+    <link href="{% static 'assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet" />
+    <link href="{% static 'assets/vendor/boxicons/css/boxicons.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'assets/vendor/quill/quill.snow.css' %}" rel="stylesheet" />
+    <link href="{% static 'assets/vendor/quill/quill.bubble.css' %}" rel="stylesheet" />
+    <link href="{% static 'assets/vendor/remixicon/remixicon.css' %}" rel="stylesheet" />
+    <link href="{% static 'assets/vendor/simple-datatables/style.css' %}" rel="stylesheet" />
+
+    <!-- Template Main CSS File -->
+    <link href="{% static 'assets/css/style.css' %}" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.1.4/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.1.4/js/dataTables.bootstrap5.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.bootstrap5.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.1/js/dataTables.buttons.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.print.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.datatables.net/fixedcolumns/4.2.2/css/fixedColumns.dataTables.min.css" />
+    <script src="https://cdn.datatables.net/fixedcolumns/4.2.2/js/dataTables.fixedColumns.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.4/css/dataTables.bootstrap5.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.1.1/css/buttons.bootstrap5.css" />
+    <!-- <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.3.2/css/searchPanes.bootstrap5.css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/select/2.0.5/css/select.bootstrap5.css"> -->
+</head>
+
+<body>
+    <!-- ======= Header ======= -->
+    <header id="header" class="header fixed-top d-flex align-items-center">
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="{% url 'teacher_dashboard' %}" class="logo d-flex align-items-center">
+                <img src="{% static 'assets/img/logo.png' %}" alt="AttendanceMaster" />
+                <span class="d-none d-lg-block">Attendance Master</span>
+            </a>
+            <i class="bi bi-list toggle-sidebar-btn"></i>
+        </div>
+        <!-- End Logo -->
+
+        <div class="search-bar">
+            <form class="search-form d-flex align-items-center" method="POST" action="#">
+                <input type="text" name="query" placeholder="Search" title="Enter search keyword" />
+                <button type="submit" title="Search">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        </div>
+        <!-- End Search Bar -->
+
+        <nav class="header-nav ms-auto">
+            <ul class="d-flex align-items-center">
+                <li class="nav-item d-block d-lg-none">
+                    <a class="nav-link nav-icon search-bar-toggle" href="#">
+                        <i class="bi bi-search"></i>
+                    </a>
+                </li>
+                <!-- End Search Icon-->
+            </ul>
+        </nav>
+        <!-- End Icons Navigation -->
+    </header>
+    <!-- End Header -->
+
+    <!-- ======= Sidebar ======= -->
+    <aside id="sidebar" class="sidebar">
+        <ul class="sidebar-nav" id="sidebar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'teacher_dashboard' %}">
+                    <i class="bi bi-grid"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'teacher_dashboard' %}">
+                    <i class="bi bi-person"></i>
+                    <span>View Attendance Books</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#account-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-person"></i><span>Account</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="account-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a href="{% url 'teacher_profile' %}">
+                            <i class="bi bi-circle"></i><span>User Profile</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'teacher_change_password' %}">
+                            <i class="bi bi-circle"></i><span>Change Password</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
+            <li class="nav-item">
+                <!-- <a type="button" data-bs-toggle="modal" data-bs-target="#confirmModal" class="nav-link" href="{% url 'logout' %}">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Logout</span>
+          </a> -->
+                <button id="clearSearchBtn" type="button" class="nav-link btn btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#confirmModal"><i class="bi bi-box-arrow-left me-2"></i>Logout</button>
+            </li>
+            <!-- End Nav -->
+
+        </ul>
+    </aside>
+    <!-- End Sidebar-->
+
+    <!-- LOGOUT MODAL -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to logout?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal"><i
+                            class="bi bi-box-arrow-left me-2"></i>Stay Logged In</button>
+                    <a type="button" href="{% url 'logout' %}" class="btn btn-danger btn-sm"><i
+                            class="bi bi-box-arrow-right me-2"></i>Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <main id="main" class="main">
+        {% block content %}{% endblock content %}
+    </main>
+    <!-- End #main -->
+
+    <!-- ======= Footer ======= -->
+    <footer id="footer" class="footer">
+        <div class="copyright">
+            &copy; Copyright &copy; 2024
+            <strong><span>Attendance Master</span></strong>. All Rights Reserved
+        </div>
+        <div class="credits">
+            Developed by
+            <a href="https://infatoz.com" target="_">Infatoz Technologies LLP</a>
+        </div>
+    </footer>
+    <!-- End Footer -->
+
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+            class="bi bi-arrow-up-short"></i></a>
+
+    <!-- Vendor JS Files -->
+    <script src="{% static 'assets/vendor/apexcharts/apexcharts.min.js' %}"></script>
+    <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/vendor/chart.js/chart.umd.js' %}"></script>
+    <script src="{% static 'assets/vendor/echarts/echarts.min.js' %}"></script>
+    <script src="{% static 'assets/vendor/quill/quill.js' %}"></script>
+    <script src="{% static 'assets/vendor/simple-datatables/simple-datatables.js' %}"></script>
+    <script src="{% static 'assets/vendor/tinymce/tinymce.min.js' %}"></script>
+    <script src="{% static 'assets/vendor/php-email-form/validate.js' %}"></script>
+
+    <!-- Template Main JS File -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+</body>
+
+</html>

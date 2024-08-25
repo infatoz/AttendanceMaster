@@ -1,90 +1,153 @@
 {% extends "administrator/base.html" %}
 {% load custom_filters %}
-{% block title %} Edit Student {% endblock title %}
+{% block title %} View Attendance Records {% endblock title %}
 {% block content %}
+
 <div class="pagetitle">
-    <h1>Edit Student</h1>
-    <nav>
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Students</a></li>
-        <li class="breadcrumb-item">Edit Student</li>
-      </ol>
-    </nav>
-  </div><!-- End Page Title -->
+  <h1>View Attendance Records</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'view_attendance_books' %}">Attendance Books</a></li>
+      <li class="breadcrumb-item">View Attendance Records</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
 
-  <section class="section">
-    {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-              {% if message.tags == 'success' %}
-              <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-1"></i>
-                {{message}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-              {% endif %}
-              {% if message.tags == 'error' %}
-              <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-octagon me-1"></i>
-                  {{message}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-              {% endif %}
-            {% endfor %}
-        </ul>
-    {% endif %}
+<section class="section mb-3">
+  <div class="btn-group" role="group" aria-label="Menu">
+    <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'view_attendance_books' %}"><i
+        class="bi bi-eye me-2"></i>View</a>
+    <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'add_attendance_book' %}"><i
+        class="bi bi-plus me-2"></i>Add</a>
+        <a role="button" class="btn btn-outline-primary btn-sm" href="{% url 'mark_attendance' attendance_book.id  %}"><i
+          class="bi bi-check-circle me-2"></i>Mark Attendance</a>
+  </div>
+</section>
 
-    <h2>Attendance Records for {{ attendance_book.name }}</h2>
+<section class="section">
+  <div class="row">
+    <div class="col-lg-12">
+      {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+        {% if message.tags == 'success' %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="bi bi-check-circle me-1"></i>
+          {{message}}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+        {% if message.tags == 'error' %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="bi bi-exclamation-octagon me-1"></i>
+          {{message}}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </ul>
+      {% endif %}
 
-    <table class="table table-bordered stripe row-border order-column" id="example" style="width:100%">
-        <thead>
-            <tr>
-                <th>Student Name</th>
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">
+            Attendance Records for {{ attendance_book.name }}
+          </h5>
+          <table style="font-size: 12px;" class="table table-bordered display nowrap table-hovered" id="studentsTable">
+            <thead>
+              <tr>
+                <th>Reg No</th>
+                <th>Photo</th>
                 {% for date, sessions in records_by_date_session.items %}
-                    {% for session in sessions %}
-                        <th>{{ date }} (Session {{ session }})</th>
-                    {% endfor %}
+                {% for session in sessions %}
+                <th>{{ date }}<br/>(Session-{{ session }})</th>
+                {% endfor %}
                 {% endfor %}
                 <th>Total Count</th>
                 <th>Attendance %</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for student in students %}
-                <tr>
-                    <td>{{ student.user.fullname }}</td>
-                    {% for date, sessions in records_by_date_session.items %}
-                        {% for session, records in sessions.items %}
-                            <td>{{ records|get_item:student.user.userid }}</td>
-                        {% endfor %}
-                    {% endfor %}
-                    <td>{{ student_attendance|get_item:student.user.userid|get_item:'count' }}</td>
-                    <td>{{ student_attendance|get_item:student.user.userid|get_item:'percentage' }}%</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <style>
-      th, td { white-space: nowrap; }
-    div.dataTables_wrapper {
-        width: 800px;
-        margin: 0 auto;
-    }
-    </style>
+              </tr>
+            </thead>
+            <tbody>
+              {% for student in students %}
+              <tr>
+                <td><strong>{{ student.user.userid }}</strong></td>
+                <td>
+                  <img
+                      src="{{ student.photo_url }}"
+                      alt="{{ student.user.fullname }}"
+                      title="{{ student.user.fullname }}"
+                      style="height: 50px"
+                    /><br/>
+                    <p><strong>{{ student.user.fullname }}</strong></p>
+                </td>
+                {% for date, sessions in records_by_date_session.items %} 
+                  {% for session, records in sessions.items %}
+                  
+                        {% if records|get_item:student.user.userid == 'A' %}
+                        <td style="background-color: red;color: white;font-weight: 600;">{{ records|get_item:student.user.userid }}</td>
+                        {% else %}
+                        <td>{{ records|get_item:student.user.userid }}</td>
+                  {% endif %}
+                  {% endfor %} 
+                  {% endfor %}
+                <td><strong>{{ student_attendance|get_item:student.user.userid|get_item:'count' }}/{{total_sessions}}</strong></td>
+                <!-- <td>{{ student_attendance|get_item:student.user.userid|get_item:'percentage' }}%</td> -->
+                {% if student_attendance|get_item:student.user.userid|get_item:'percentage' < 75 %}
+                    <td style="background-color: red;color: white;font-weight: 600;"><strong>{{student_attendance|get_item:student.user.userid|get_item:'percentage'}}%</strong></td>
+                    {% else %}
+                    <td><strong>{{student_attendance|get_item:student.user.userid|get_item:'percentage'}}%</strong></td>
+                    {% endif %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <script>
-      $('#example').DataTable({
-        fixedColumns: {
-        start: 1,
-        end: 1
+<script>
+  $(document).ready(function () {
+    $("#studentsTable").DataTable({
+      order: [[0, "asc"]], // Sorting by Reg No.
+      scrollX: true,       // Enable horizontal scrolling
+      scrollCollapse: false,
+      paging: false,
+      pageLength: 150,
+      lengthMenu: [50, 100, 150, 200, 250, 500],
+      fixedColumns: {
+        leftColumns: 2,  // Fix first two columns: Reg No. and Photo
+        rightColumns: 2  // Fix last three columns: Total Count, Attendance %, Mark Attendance
+      },
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          text: "Copy",
+          className: "btn btn-sm btn-outline-secondary",
+          // exportOptions: {
+          //   columns: [0, 2, 3, 4, 5, 6, 7, 8], // Exclude the last column
+          // },
         },
-        paging: false,
-        scrollCollapse: true,
-        scrollX: true,
-        scrollY: 300
-      });
-    </script>
-
-    
-  </section>
+        // {
+        //   extend: "csv",
+        //   text: "CSV",
+        //   className: "btn btn-sm btn-outline-secondary",
+        //   // exportOptions: {
+        //   //   columns: [0, 2, 3, 4, 5, 6, 7, 8], // Exclude the last column
+        //   // },
+        // },
+        {
+          extend: "excel",
+          text: "Excel",
+          className: "btn btn-sm btn-outline-secondary",
+          // exportOptions: {
+          //   columns: [0, 2, 3, 4, 5, 6, 7, 8], // Exclude the last column
+          // },
+        }
+      ],
+    });
+  });
+</script>
 {% endblock content %}

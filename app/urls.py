@@ -1,10 +1,15 @@
 from django.urls import path
 from . import views
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('', views.user_login, name='home'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('administrator/dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('administrator/dashboard/attendance/<int:pk>/', views.view_attendance_records, name='view_attendance_records'),
     path('administrator/dashboard/attendance/mark/<int:pk>/', views.mark_attendance, name='mark_attendance'),
@@ -31,4 +36,12 @@ urlpatterns = [
     path('administrator/dashboard/course/add', views.add_course, name='add_course'),
     path('administrator/dashboard/course/edit/<str:course_id>/', views.edit_course, name='edit_course'),
     path('administrator/dashboard/course/delete/<str:course_id>/', views.delete_course, name='delete_course'),
+    path('administrator/profile/', views.admin_profile, name='admin_profile'),
+    path('administrator/change_password/', views.admin_change_password, name='admin_change_password'),
+    path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
+    path('teacher/profile/', views.teacher_profile, name='teacher_profile'),
+    path('teacher/change_password/', views.teacher_change_password, name='teacher_change_password'),
+
+    # path('teacher/dashboard/attendance_books/', views.teacher_view_attendnace_books, name='teacher_view_attendnace_books'),
+    # path('teacher/dashboard/attendance/mark/<int:pk>/', views.teacher_mark_attendance, name='teacher_mark_attendance'),
 ]

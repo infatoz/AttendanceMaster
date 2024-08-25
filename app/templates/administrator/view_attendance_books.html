@@ -1,16 +1,33 @@
 {% extends "administrator/base.html" %} 
-{% block title %} Adminstrator Dashboard{% endblock title %} 
+{% block title %} View All Attendance Books {% endblock title %} 
 {% block content %}
 <div class="pagetitle">
   <h1>View All Attendance Books</h1>
   <nav>
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="#">Attendance Books</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'view_attendance_books' %}">Attendance Books</a></li>
       <li class="breadcrumb-item">View All Attendance Books</li>
     </ol>
   </nav>
 </div>
 <!-- End Page Title -->
+
+<section class="section mb-3">
+  <div class="btn-group" role="group" aria-label="Menu">
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'view_attendance_books' %}"
+      ><i class="bi bi-eye"></i> View</a
+    >
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'add_attendance_book' %}"
+      ><i class="bi bi-plus"></i> Add</a
+    >
+  </div>
+</section>
 
 <section class="section">
   <div class="row">
@@ -54,7 +71,7 @@
 
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">Attendance Books</h5>
+          <h5 class="card-title">All Attendance Books</h5>
 
           <table
             id="attendanceBooksTable"
@@ -95,10 +112,12 @@
                   </ul>
                 </td> -->
                 <td>
-                  <a href="{% url 'mark_attendance' book.id  %}" class="btn btn-sm btn-primary">Mark Attendance</a>
-                  <a href="{% url 'view_attendance_records' book.id%}" class="btn btn-sm btn-secondary">View Attendance</a>
-                  <a href="{% url 'view_attendance_records' book.id%}" class="btn btn-sm btn-warning">Edit</a>
-                  <a href="{% url 'delete_attendance_book' book.id%}" class="btn btn-sm btn-danger">Delete</a>
+                  <div class="btn-group" role="group" aria-label="Menu">
+                  <a href="{% url 'mark_attendance' book.id  %}" class="btn btn-sm btn-outline-primary" role="button"><i class="bi bi-check-circle me-2"></i>Mark Attendance</a>
+                  <a href="{% url 'view_attendance_records' book.id%}" class="btn btn-sm btn-outline-secondary" role="button"><i class="bi bi-eye me-2"></i>View Attendance</a>
+                  <!-- <a href="{% url 'view_attendance_records' book.id%}" class="btn btn-sm btn-outline-warning" role="button"><i class="bi bi-pencil me-2"></i>Edit</a> -->
+                  <a href="{% url 'delete_attendance_book' book.id%}" class="btn btn-sm btn-outline-danger" role="button"><i class="bi bi-trash me-2"></i>Delete</a>
+                </div>
                 </td>
               </tr>
               {% endfor %}

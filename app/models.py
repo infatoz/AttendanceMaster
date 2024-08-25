@@ -121,10 +121,10 @@ class Student(models.Model):
 class AttendanceBook(models.Model):
     BOOK_TYPE = (
         ('1', 'Theory'),
-        ('2', 'Practicle-1 Hr'),
-        ('3', 'Practicle-2 Hr'),
-        ('4', 'Practicle-3 Hr'),
-        ('5', 'Practicle-4 Hr'),
+        ('1', 'Practicle-1 Hr'),
+        ('2', 'Practicle-2 Hr'),
+        ('3', 'Practicle-3 Hr'),
+        ('4', 'Practicle-4 Hr'),
     )
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, blank=False)
@@ -136,7 +136,21 @@ class AttendanceBook(models.Model):
 
 
 
-# Attendance Records Model
+# # Attendance Records Model
+# class AttendanceRecord(models.Model):
+#     attendance_book = models.ForeignKey(AttendanceBook, on_delete=models.CASCADE)
+#     student = models.ForeignKey(Student, on_delete=models.CASCADE)
+#     date = models.DateField()
+#     session = models.CharField(max_length=100)
+#     status = models.BooleanField(default=False)
+#     count = models.IntegerField(default=0)
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     @property
+#     def get_status_display(self):
+#         return 'P' if self.status else 'A'
+
+
 class AttendanceRecord(models.Model):
     attendance_book = models.ForeignKey(AttendanceBook, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
@@ -145,6 +159,9 @@ class AttendanceRecord(models.Model):
     status = models.BooleanField(default=False)
     count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('attendance_book', 'student', 'date', 'session')
 
     @property
     def get_status_display(self):

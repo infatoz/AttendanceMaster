@@ -41,12 +41,6 @@ INSTALLED_APPS = [
     'app'
 ]
 
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
-CRISPY_TEMPLATE_PACK = "bootstrap5"
-AUTH_USER_MODEL = 'app.CustomUser'
-LOGIN_URL = 'login'
-# LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'login'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -69,6 +63,14 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'error',
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'manjunathdevadiga131@gmail.com'
+EMAIL_HOST_PASSWORD = 'dmrgborknxhxkvbl'
+DEFAULT_FROM_EMAIL = 'Manjunath Devadiga <manjunathdevadiga131@gmail.com>'
 
 
 ROOT_URLCONF = 'attendance_master.urls'
@@ -146,3 +148,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+AUTH_USER_MODEL = 'app.CustomUser'
+LOGIN_URL = 'login'
+# LOGIN_REDIRECT_URL = 'home'
+# LOGOUT_REDIRECT_URL = 'login'

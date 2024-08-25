@@ -1,23 +1,42 @@
 {% extends "administrator/base.html" %}
-{% block title %} Delete Department - {{ attendance_book.name }} {% endblock title %}
+{% block title %} Delete Attendance Book - {{ attendance_book.name }} {% endblock title %}
 {% block content %}
 <div class="pagetitle">
     <h1>Delete Attendance Book</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Attendance Books</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'view_attendance_books' %}">Attendance Books</a></li>
         <li class="breadcrumb-item">Delete Attendance Book</li>
       </ol>
     </nav>
   </div><!-- End Page Title -->
 
   <section class="section">
-    <h2>Confirm Delete</h2>
-        <p>Are you sure you want to delete the attendance book <strong>{{ attendance_book.name }}</strong>?</p>
-        <form method="POST">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger">Yes, delete</button>
-            <a href="{% url 'view_attendance_books' %}" class="btn btn-secondary">Cancel</a>
-        </form>
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-header">Confirm Delete?</div>
+          <div class="card-body">
+            <p class="card-title">
+              Are you sure you want to delete the attendance book 
+              <strong
+                >{{ attendance_book.name }}</strong
+              >?
+            </p>
+          </div>
+          <div class="card-footer">
+            <form method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">
+                <i class="bi bi-check-lg me-2"></i>Delete
+              </button>
+              <a href="{% url 'view_attendance_books' %}" class="btn btn-secondary btn-sm"
+                ><i class="bi bi-x-lg me-2"></i>Cancel</a
+              >
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 {% endblock content %}

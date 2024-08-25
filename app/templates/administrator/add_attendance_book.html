@@ -1,44 +1,85 @@
-{% extends "administrator/base.html" %}
-{% block title %} Adminstrator Dashboard {% endblock title %}
+{% extends "administrator/base.html" %} 
+{% block title %} Create New Attendance Book {% endblock title %}
 {% block content %}
+
 <div class="pagetitle">
-    <h1>Create New Attendance Book</h1>
-    <nav>
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-        <li class="breadcrumb-item">Create New Attendance Book</li>
-      </ol>
-    </nav>
-  </div><!-- End Page Title -->
+  <h1>Create New Attendance Book</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="{% url 'view_attendance_books' %}">Attendance Books</a>
+      </li>
+      <li class="breadcrumb-item">Create New Attendance Book</li>
+    </ol>
+  </nav>
+</div>
+<!-- End Page Title -->
 
-  <section class="section">
-    {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-              {% if message.tags == 'success' %}
-              <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-1"></i>
-                {{message}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-              {% endif %}
-              {% if message.tags == 'error' %}
-              <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-octagon me-1"></i>
-                  {{message}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-              {% endif %}
-            {% endfor %}
-        </ul>
-    {% endif %}
+<section class="section mb-3">
+  <div class="btn-group" role="group" aria-label="Menu">
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'view_attendance_books' %}"
+      ><i class="bi bi-eye"></i> View</a
+    >
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'add_attendance_book' %}"
+      ><i class="bi bi-plus"></i> Add</a
+    >
+  </div>
+</section>
 
-    <h2>Create Attendance Book</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Create Book & Next</button>
-    </form>
-  </section>
+<section class="section">
+  <div class="row">
+    <div class="col-lg-12">
+      {% if messages %}
+      <ul class="messages">
+        {% for message in messages %} {% if message.tags == 'success' %}
+        <div
+          class="alert alert-success alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-check-circle me-1"></i>
+          {{message}}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endif %} {% if message.tags == 'error' %}
+        <div
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-exclamation-octagon me-1"></i>
+          {{message}}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endif %} {% endfor %}
+      </ul>
+      {% endif %}
+
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Create Attendance Book</h5>
+          <form method="post">
+            {% csrf_token %} {{ form.as_p }}
+            <button type="submit" class="btn btn-sm btn-primary">Create Book & Next<i class="bi bi-arrow-right ms-2"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 {% endblock content %}

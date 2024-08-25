@@ -1,100 +1,181 @@
 {% extends "administrator/base.html" %}
-{% block title %} Add Teachers to Attendance Book {% endblock title %}
+{% block title %} Add Students to Attendance Book {% endblock title %} 
 {% block content %}
+
 <div class="pagetitle">
-    <h1>Add Teachers to Attendance Book</h1>
-    <nav>
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-        <li class="breadcrumb-item">Add Teachers to Attendance Book</li>
-      </ol>
-    </nav>
-  </div><!-- End Page Title -->
+  <h1>Add Students to Attendance Book</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'view_attendance_books' %}">Attendance Books</a></li>
+      <li class="breadcrumb-item">Add Students to Attendance Book</li>
+    </ol>
+  </nav>
+</div>
+<!-- End Page Title -->
 
-  <section class="section">
-    <div class="row">
-      <div class="col-lg-12">
+<section class="section">
+  <div class="row">
+    <div class="col-lg-12">
+      {% if messages %}
+      <ul class="messages">
+        {% for message in messages %} {% if message.tags == 'success' %}
+        <div
+          class="alert alert-success alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-check-circle me-1"></i>
+          {{message}}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endif %} {% if message.tags == 'error' %}
+        <div
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-exclamation-octagon me-1"></i>
+          {{message}}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endif %} {% endfor %}
+      </ul>
+      {% endif %}
 
-        {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-              {% if message.tags == 'success' %}
-              <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-1"></i>
-                {{message}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-              {% endif %}
-              {% if message.tags == 'error' %}
-              <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-octagon me-1"></i>
-                  {{message}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-              {% endif %}
-            {% endfor %}
-        </ul>
-    {% endif %}
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Select Students to Attendance Book</h5>
 
-        <div class="card">
-          <div class="card-body">
+          
 
-            <h5 class="card-title">Select Students for Book</h5>
-            <input type="checkbox" id="selectAllStudents">
-            <form method="post">
-              {% csrf_token %}
-              <button type="submit">Add Students & Finish</button>
+          <form method="post">
+            {% csrf_token %}
+
+            <button type="submit" class="btn btn-sm btn-primary mb-3">
+              Add Students & Finish<i class="bi bi-check-circle ms-2"></i>
+            </button>
+            <!-- <button type="submit">Add Students & Finish</button> -->
+
+            <div class="form-check mt-2 mb-2">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="selectAllStudents"
+              />
+              <label class="form-check-label" for="selectAllStudents">
+                Select All
+              </label>
+            </div>
+            <!-- <input type="checkbox" id="selectAllStudents" /> -->
+
+
             <!-- Table with stripped rows -->
-            <table class="table table-bordered" id="studentsTable">
+            <table class="table table-bordered display nowrap" id="studentsTable">
               <thead>
                 <tr>
-                    <th>    
-                      Select
-                    </th>
-                    <th>Student ID</th>
-                    <th>Name</th>
-                    <th>Course</th>
+                  <th>Select</th>
+                  <th>Reg. No</th>
+                  <td>Photo</td>
+                  <th>Name</th>
+                  <th>Course</th>
+                  <th>Year</th>
+                  <th>Section</th>
                 </tr>
-            </thead>
-            <tbody>
+                <tr>
+                  <th></th>
+                  <th><input type="text" placeholder="Search Reg. No" /></th>
+                  <th></th> <!-- No filter for Photo column -->
+                  <th><input type="text" placeholder="Search Name" /></th>
+                  <th><input type="text" placeholder="Search Course" /></th>
+                  <th><input type="text" placeholder="Search Year" /></th>
+                  <th><input type="text" placeholder="Search Section" /></th>
+                </tr>
+              </thead>
+              <tbody>
                 {% for student in students %}
                 <tr>
-                    <td><input type="checkbox" name="students" value="{{ student.user.userid }}" class="studentCheckbox"></td>
-                    <td>{{ student.user.userid }}</td>
-                    <td>{{ student.user.fullname }}</td>
-                    <td>{{ student.course }}</td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      name="students"
+                      value="{{ student.user.userid }}"
+                      class="studentCheckbox form-check-input"
+                    />
+                  </td>
+                  <td>{{ student.user.userid }}</td>
+                  <td>
+                    <img
+                    src="{{ student.photo_url }}"
+                    alt="{{ student.user.fullname }}"
+                    title="{{ student.user.fullname }}"
+                    style="height: 80px"
+                  />
+                  </td>
+                  <td>{{ student.user.fullname }}</td>
+                  <td>{{ student.course }}</td>
+                  <td>{{ student.year }}</td>
+                  <td>{{ student.section }}</td>
                 </tr>
                 {% endfor %}
-            </tbody>
-        </table>
-        </form>
-            <!-- End Table with stripped rows -->
-
-          </div>
+              </tbody>
+            </table>
+          </form>
+          <!-- End Table with stripped rows -->
         </div>
-
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <script>
-    $(document).ready(function() {
-        // Initialize DataTables
-        $('#studentsTable').DataTable();
-  
-    
-        // Select All Teachers
-        $('#selectAllStudents').click(function() {
-            $('.studentCheckbox').prop('checked', this.checked);
-        });
-    
-    
-        // If any teacher checkbox is unchecked, uncheck Select All
-        $('.studentCheckbox').click(function() {
-            if (!$(this).prop('checked')) {
-                $('#selectAllStudents').prop('checked', false);
-            }
-        });
+<script>
+  $(document).ready(function () {
+    // Initialize DataTables
+    $("#studentsTable").DataTable({
+      // // order: [[2, "asc"]],
+      // scrollX: true,
+      // paging: true,
+      // pageLength: 150,
+      // lengthMenu: [150, 200, 250, 300, 350, 500,1000,2000,3000,4000,5000],
+      scrollX: true,
+        paging: true,
+        pageLength: 150,
+        lengthMenu: [150, 200, 250, 300, 350, 500, 1000, 2000, 3000, 4000, 5000],
+        initComplete: function () {
+            this.api().columns().every(function () {
+                var that = this;
+
+                // Apply the filter for the input boxes in the header
+                $('input', this.header()).on('keyup change clear', function () {
+                    if (that.search() !== this.value) {
+                        that
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            });
+        }
+    }
+    );
+
+    // Select All Teachers
+    $("#selectAllStudents").click(function () {
+      $(".studentCheckbox").prop("checked", this.checked);
     });
-    </script>
+
+    // If any teacher checkbox is unchecked, uncheck Select All
+    $(".studentCheckbox").click(function () {
+      if (!$(this).prop("checked")) {
+        $("#selectAllStudents").prop("checked", false);
+      }
+    });
+  });
+</script>
 {% endblock content %}

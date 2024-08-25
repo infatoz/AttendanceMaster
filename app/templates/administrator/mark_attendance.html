@@ -1,137 +1,246 @@
-{% extends "administrator/base.html" %}
-{% load custom_filters %}
-{% block title %} Edit Student {% endblock title %}
+{% extends "administrator/base.html" %} 
+{% load custom_filters %} 
+{% block title %} Mark Attendance {% endblock title %} 
 {% block content %}
+
 <div class="pagetitle">
-    <h1>Edit Student</h1>
-    <nav>
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Students</a></li>
-        <li class="breadcrumb-item">Edit Student</li>
-      </ol>
-    </nav>
-  </div><!-- End Page Title -->
+  <h1>Mark Attendance</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="{% url 'view_attendance_books' %}">Attendance Books</a>
+      </li>
+      <li class="breadcrumb-item">Mark Attendance</li>
+    </ol>
+  </nav>
+</div>
+<!-- End Page Title -->
 
-  <section class="section">
-    {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-              {% if message.tags == 'success' %}
-              <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-1"></i>
-                {{message}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<section class="section mb-3">
+  <div class="btn-group" role="group" aria-label="Menu">
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'view_attendance_books' %}"
+      ><i class="bi bi-eye"></i> View</a
+    >
+    <a
+      role="button"
+      class="btn btn-outline-primary btn-sm"
+      href="{% url 'add_attendance_book' %}"
+      ><i class="bi bi-plus"></i> Add</a
+    >
+  </div>
+</section>
+
+<section class="section">
+  <div class="row">
+    <div class="col-lg-12">
+      {% if messages %}
+      <ul class="messages">
+        {% for message in messages %} {% if message.tags == 'success' %}
+        <div
+          class="alert alert-success alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-check-circle me-1"></i>
+          {{message}}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endif %} {% if message.tags == 'error' %}
+        <div
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-exclamation-octagon me-1"></i>
+          {{message}}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endif %} {% endfor %}
+      </ul>
+      {% endif %}
+
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">
+            Mark Attendance for {{ attendance_book.name }}
+          </h5>
+
+          <form method="POST" class="row">
+            {% csrf_token %}
+
+              <div class="col-md-4 mb-3">
+                <label for="session" class="form-label">Date</label>
+                <input type="date" name="date" id="dateInput" required class="form-control"/>
               </div>
-              {% endif %}
-              {% if message.tags == 'error' %}
-              <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-octagon me-1"></i>
-                  {{message}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              <div class="col-md-4 mb-3">
+                <label for="session" class="form-label">Session</label>
+                <select name="session" id="session" required class="form-select">
+                    <option value="">Select Session</option>
+                    <option value="0">Session 0</option>
+                    <option value="1">Session 1</option>
+                    <option value="2">Session 2</option>
+                    <option value="3">Session 3</option>
+                    <option value="4">Session 4</option>
+                    <option value="5">Session 5</option>
+                    <option value="6">Session 6</option>
+                    <option value="7">Session 7</option>
+                    <option value="8">Session 8</option>
+                  </select>
               </div>
-              {% endif %}
-            {% endfor %}
-        </ul>
-    {% endif %}
+              <div class="col-md-4 mb-3">
+                <!-- <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check-circle me-2"></i>Mark Attendance</button> -->
+                <button id="clearSearchBtn"  type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal"><i class="bi bi-check-circle me-2"></i>Mark Attendance</button>
 
-    
+                <div class="modal fade" id="confirmModal" tabindex="-1" >
+                    <div class="modal-dialog modal-dialog-centered">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title">Confirm?</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure you want to mark attendance?
+                          </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"><i class="bi bi-pencil me-2"></i>Edit</button>
+                          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-circle me-2"></i>Mark Attendance</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              </div>
 
-    <form method="POST">
-        {% csrf_token %}
-        <h2>Mark Attendance for {{ attendance_book.name }}</h2>
-        <label for="date">Date:</label>
-        <input type="date" name="date" id="dateInput" required>
-        <label for="session">Session:</label>
-        <select name="session" id="session" required>
-          <option value="1">Class 1</option>
-          <option value="2">Class 2</option>
-          <option value="3">Class 3</option>
-          <option value="4">Class 4</option>
-          <option value="5">Class 5</option>
-          <option value="6">Class 6</option>
-          <option value="7">Class 7</option>
-          <option value="8">Class 8</option>
-        </select>
-
-        <table class="table table-bordered datatable">
-          <thead>
-              <tr>
-                  <th>Student Name</th>
-                  {% for date, sessions in records_by_date_session.items %}
-                      {% for session in sessions %}
-                          <th>{{ date }} (Session {{ session }})</th>
-                      {% endfor %}
-                  {% endfor %}
-                  <th>Total Count</th>
-                  <th>Attendance %</th>
-                  <th>Mark Attendance</th>
-              </tr>
-          </thead>
-          <tbody>
-              {% for student in students %}
-                  <tr>
-                      <td>{{ student.user.fullname }}</td>
-                      {% for date, sessions in records_by_date_session.items %}
-                          {% for session, records in sessions.items %}
-                              <td>{{ records|get_item:student.user.userid }}</td>
-                          {% endfor %}
-                      {% endfor %}
-                      <td>{{ student_attendance|get_item:student.user.userid|get_item:'count' }}</td>
-                      <td>{{ student_attendance|get_item:student.user.userid|get_item:'percentage' }}%</td>
-                      <td><input type="checkbox" name="attendance" value="{{ student.user.userid }}" checked></td>
-                  </tr>
-              {% endfor %}
-          </tbody>
-      </table>
-    
-        <!-- <table class="table datatable">
-            <thead>
+            <table style="font-size: 12px;" class="table table-bordered display nowrap table-hovered" id="studentsTable">
+              <thead>
                 <tr>
-                    <th>Student Name</th>
-                    {% for record in attendance_records %}
-                        <th>{{ record.date }}</th>
-                    {% endfor %}
-                    <th>Mark Attendance</th>
+                  
+                  <th data-name="reg_no">Reg No.</th>
+            <th data-name="photo">Photo</th>
+            {% for date, sessions in records_by_date_session.items %} 
+                {% for session in sessions %}
+                    <th data-name="date_session_{{date}}_{{session}}">{{ date }} <br/>(Session-{{ session }})</th>
+                {% endfor %} 
+            {% endfor %}
+            <th data-name="total_count">Total<br/>Count</th>
+            <th data-name="attendance_percentage">Attendance<br/>(%)</th>
+            <th data-name="mark_attendance">Mark<br/>Attendance</th>
                 </tr>
-            </thead>
-            <tbody>
+              </thead>
+              <tbody>
                 {% for student in students %}
-                    <tr>
-                        <td>{{ student.user.fullname }}</td>
-                        {% for record in attendance_records %}
-                            <td>
-                                {% if record.student == student %}
-                                    {{ record.get_status_display }}
-                                {% endif %}
-                            </td>
-                        {% endfor %}
-                        <td>
-                            <input type="checkbox" name="attendance" value="{{ student.user.userid }}" checked>
-                        </td>
-                    </tr>
+                <tr>
+                  <td><strong>{{ student.user.userid }}</strong></td>
+                  <!-- <td>{{ student.user.fullname }}</td> -->
+                  <td>
+                    <img
+                      src="{{ student.photo_url }}"
+                      alt="{{ student.user.fullname }}"
+                      title="{{ student.user.fullname }}"
+                      style="height: 50px"
+                    /><br/>
+                    <p><strong>{{ student.user.fullname }}</strong></p>
+                  </td>
+                  {% for date, sessions in records_by_date_session.items %} 
+                  {% for session, records in sessions.items %}
+                  
+                        {% if records|get_item:student.user.userid == 'A' %}
+                        <td style="background-color: red;color: white;font-weight: 600;">{{ records|get_item:student.user.userid }}</td>
+                        {% else %}
+                        <td>{{ records|get_item:student.user.userid }}</td>
+                  {% endif %}
+                  {% endfor %} 
+                  {% endfor %}
+                  <td>
+                    <strong>{{student_attendance|get_item:student.user.userid|get_item:'count'}}/{{total_sessions}}</strong>
+                  </td>
+                    {% if student_attendance|get_item:student.user.userid|get_item:'percentage' < 75 %}
+                    <td style="background-color: red;color: white;font-weight: 600;"><strong>{{student_attendance|get_item:student.user.userid|get_item:'percentage'}}%</strong></td>
+                    {% else %}
+                    <td><strong>{{student_attendance|get_item:student.user.userid|get_item:'percentage'}}%</strong></td>
+                    {% endif %}
+                    <td>
+                        <input class="form-check-input customcheckbox"  type="checkbox" name="attendance" value="{{ student.user.userid }}" checked>
+                        
+                  </td>
+                </tr>
                 {% endfor %}
-            </tbody>
-        </table> -->
+              </tbody>
+            </table>
 
-        
+            
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+
+</section>
+
+<script>
+
+    $(document).ready(function() {
+        var table = $("#studentsTable").DataTable({
+            order: [[0, "asc"]], // Sorting by Reg No.
+            scrollX: true,       // Enable horizontal scrolling
+            scrollCollapse: false,
+            paging: true,
+            pageLength: 150,
+            lengthMenu: [50, 100, 150, 200, 250, 500],
+            fixedColumns: {
+                leftColumns: 2,  // Fix first two columns: Reg No. and Photo
+                rightColumns: 3  // Fix last three columns: Total Count, Attendance %, Mark Attendance
+            },
+            
+            // columnDefs: [
+            //     { targets: 'reg_no', width: "50px" },  // Reg No.
+            //     { targets: 'photo', width: "50px" },   // Photo
+            //     { targets: 'total_count', width: "50px" }, // Total Count
+            //     { targets: 'attendance_percentage', width: "50px" }, // Attendance %
+            //     { targets: 'mark_attendance', width: "50px" } // Mark Attendance
+            //     // Add more columnDefs for dynamic columns if needed
+            // ]
+        });
+
+        // Clear search box on button click
+    $('#clearSearchBtn').click(function() {
+        // Clear the search box
+        table.search('').draw();
+    });
+    });
     
-        <button type="submit">Submit</button>
-    </form>
-
-    <script>
-    // Get today's date in YYYY-MM-DD format
-    const today = new Date().toISOString().split('T')[0];
-
-    // Get yesterday's date in YYYY-MM-DD format
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayFormatted = yesterday.toISOString().split('T')[0];
-
-    // Set the min and max attributes to yesterday and today
-    const dateInput = document.getElementById('dateInput');
-    dateInput.setAttribute('min', yesterdayFormatted);
-    dateInput.setAttribute('max', today);
-</script>
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split("T")[0];
     
-  </section>
+        // Get yesterday's date in YYYY-MM-DD format
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayFormatted = yesterday.toISOString().split("T")[0];
+    
+        // Set the min and max attributes to yesterday and today
+        const dateInput = document.getElementById("dateInput");
+        dateInput.setAttribute("min", yesterdayFormatted);
+        dateInput.setAttribute("max", today);
+      </script>
+
+      <style>
+        .customcheckbox {
+            display: block;
+            height: 30px;
+            width: 30px;
+        }
+      </style>
+    
 {% endblock content %}

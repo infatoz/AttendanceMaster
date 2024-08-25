@@ -1,15 +1,16 @@
+from collections import defaultdict
 import csv
 from datetime import datetime
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.urls import reverse_lazy
 from app.forms import AddCourseForm, AddDepartmentForm, AttendanceBookForm, CustomUserCreationForm, StudentCSVUploadForm, StudentRegistrationForm, TeacherCSVUploadForm, TeacherRegistrationForm,  UserLoginForm
 from django.contrib.auth.decorators import login_required
 from app.decorators import role_required
 from django.db import transaction
 from django.contrib import messages
-
-from app.models import AttendanceBook, AttendanceRecord, Course, CustomUser, Department, Student, Teacher
+from app.models import Admin, AttendanceBook, AttendanceRecord, Course, CustomUser, Department, Student, Teacher
+from django.contrib.auth.forms import PasswordChangeForm
 
 
 # All user login [Admin/HOD/Teacher/Student]
@@ -25,11 +26,19 @@ def user_login(request):
                 if user.role == 'admin':
                     login(request,user)
                     return redirect('admin_dashboard')
-                
+                if user.role == 'teacher':
+                    login(request,user)
+                    return redirect('teacher_dashboard')
+                if user.role == 'student':
+                    login(request,user)
+                    return redirect('student_dashboard')
             else:
                 form.add_error(None, 'Invalid userid or password')
+                messages.error(request, 'Invalid userid or password!')
+        return render(request, 'login.html', {'form': form})
     form = UserLoginForm()
     return render(request, 'login.html', {'form': form})
+
 
 # User Logout
 def user_logout(request):
@@ -44,6 +53,32 @@ def user_logout(request):
 def admin_dashboard(request):
     return render(request, 'administrator/dashboard.html')
 
+
+# Admin Profile
+@login_required
+@role_required(['admin'])
+def admin_profile(request):
+    # Assuming the logged-in user is an admin
+    admin = get_object_or_404(Admin, user=request.user)
+    return render(request, 'administrator/admin_profile.html', {'admin': admin})
+
+# Admin Change Password
+@login_required
+def admin_change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user) 
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('admin_change_password')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'administrator/change_password.html', {
+        'form': form
+    })
 
 # Add Teacher
 @login_required
@@ -248,9 +283,11 @@ def upload_students_csv(request):
                 # Process CSV file
                 csv_reader = csv.DictReader(csv_file.read().decode('utf-8').splitlines())
                 for row in csv_reader:
+                    # print(row)
                     userid = row.get('userid')
                     fullname = row.get('fullname')
                     phone_no = row.get('phone_no')
+                    parent_phoneno = row.get('parent_phoneno')
                     email = row.get('email')
                     course_id = row.get('course_id')
                     usn = row.get('usn')
@@ -289,6 +326,7 @@ def upload_students_csv(request):
                     Student.objects.create(
                         user=user,
                         usn=usn,
+                        parent_phoneno=parent_phoneno,
                         course=course,
                         year=year,
                         section=section,
@@ -361,7 +399,7 @@ def add_attendance_book_student(request, pk):
         # print(res)
         attendance_book.save()
         return redirect('view_attendance_books')
-    teachers = Teacher.objects.all()
+    # teachers = Teacher.objects.all()
     return render(request, 'administrator/add_attendance_book_student.html', {
         'attendance_book': attendance_book,
         'students': students
@@ -376,38 +414,6 @@ def view_attendnace_books(request):
     return render(request, 'administrator/view_attendance_books.html', {
         'attendance_books': attendance_books
     })
-
-# @login_required
-# @role_required(['admin', 'teacher'])
-# def mark_attendance(request, pk):
-#     attendance_book = get_object_or_404(AttendanceBook, pk=pk)
-#     students = attendance_book.students.all()
-#     attendance_records = AttendanceRecord.objects.filter(attendance_book=attendance_book).order_by('date')
-
-#     if request.method == 'POST':
-#         selected_students = request.POST.getlist('attendance')
-#         current_date = request.POST.get('date')
-#         session = request.POST.get('session')
-
-#         for student in students:
-#             status = student.user.userid in selected_students
-#             record = AttendanceRecord.objects.create(
-#                 attendance_book=attendance_book,
-#                 student=student,
-#                 date=current_date,
-#                 session=session,
-#                 status=status,
-#                 count=student.attendancerecord_set.filter(status=True).count() + (1 if status else 0)
-#             )
-#             record.save()
-
-#         return redirect('view_attendance_books')
-
-#     return render(request, 'administrator/mark_attendance.html', {
-#         'attendance_book': attendance_book,
-#         'students': students,
-#         'attendance_records': attendance_records,
-#     })
 
 
 @login_required
@@ -429,6 +435,7 @@ def mark_attendance(request, pk):
     # Calculate total sessions and attendance count for each student
     student_attendance = {}
     total_sessions = len(set((record.date, record.session) for record in attendance_records))
+    increment_value = int(attendance_book.book_type)
 
     for student in students:
         attendance_count = AttendanceRecord.objects.filter(
@@ -439,25 +446,54 @@ def mark_attendance(request, pk):
             'count': attendance_count,
             'percentage': round(attendance_percentage, 2),
         }
-
+    
     if request.method == 'POST':
         selected_students = request.POST.getlist('attendance')
         current_date = request.POST.get('date')
         session = request.POST.get('session')
 
-        for student in students:
-            status = student.user.userid in selected_students
-            record = AttendanceRecord.objects.create(
-                attendance_book=attendance_book,
-                student=student,
-                date=current_date,
-                session=session,
-                status=status,
-                count=student.attendancerecord_set.filter(status=True).count() + (1 if status else 0)
-            )
-            record.save()
+        try:
+            with transaction.atomic():
+                for student in students:
+                    status = student.user.userid in selected_students
 
-        return redirect('view_attendance_books')
+                    # Determine the increment value based on book_type
+                    increment_value = int(attendance_book.book_type)
+
+                    # Check if a record already exists for the same student, date, and session
+                    existing_record = AttendanceRecord.objects.filter(
+                        attendance_book=attendance_book,
+                        student=student,
+                        date=current_date,
+                        session=session
+                    ).first()
+
+                    if existing_record:
+                        # Update the existing record's status and count
+                        existing_record.status = status
+                        existing_record.count = student.attendancerecord_set.filter(status=True).count() + (
+                            increment_value if status else 0
+                        )
+                        existing_record.save()
+                    else:
+                        # Create a new record if it doesn't exist
+                        AttendanceRecord.objects.create(
+                            attendance_book=attendance_book,
+                            student=student,
+                            date=current_date,
+                            session=session,
+                            status=status,
+                            count=student.attendancerecord_set.filter(status=True).count() + (
+                                increment_value if status else 0
+                            )
+                        )
+            
+            messages.success(request, 'Attendance Marked Successfully')
+
+        except Exception as e:
+            # Catch any errors and show a message to the user
+            messages.error(request, f'Error occurred while marking attendance: {str(e)}')
+        return redirect('view_attendance_records',pk=pk)
 
     return render(request, 'administrator/mark_attendance.html', {
         'attendance_book': attendance_book,
@@ -465,7 +501,9 @@ def mark_attendance(request, pk):
         'attendance_records': attendance_records,
         'records_by_date_session': records_by_date_session,
         'student_attendance': student_attendance,
+        'total_sessions': total_sessions,
     })
+
 
 @login_required
 @role_required(['admin', 'teacher'])
@@ -496,12 +534,12 @@ def view_attendance_records(request, pk):
             'count': attendance_count,
             'percentage': round(attendance_percentage, 2),
         }
-
     return render(request, 'administrator/view_attendance_records.html', {
         'attendance_book': attendance_book,
         'students': students,
         'records_by_date_session': records_by_date_session,
         'student_attendance': student_attendance,
+        'total_sessions':total_sessions
     })
 
 
@@ -609,3 +647,38 @@ def delete_course(request, course_id):
         return redirect('view_courses')
     return render(request, 'administrator/delete_course.html', {'course': course})
 
+
+#======================== TEACHER VIEWS ==========================================
+
+# Teacher Dashboard
+@login_required
+@role_required(['teacher'])
+def teacher_dashboard(request):
+    return render(request, 'teacher/dashboard.html')
+
+# Teacher Profile
+@login_required
+@role_required(['teacher'])
+def teacher_profile(request):
+    # Assuming the logged-in user is an teacher
+    teacher = get_object_or_404(Teacher, user=request.user)
+    return render(request, 'teacher/teacher_profile.html', {'teacher': teacher})
+
+
+# Teacher Change Password
+@login_required
+def teacher_change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user) 
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('teacher_change_password')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'teacher/change_password.html', {
+        'form': form
+    })
