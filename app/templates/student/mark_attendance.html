@@ -1,4 +1,4 @@
-{% extends "administrator/base.html" %} 
+{% extends "teacher/base.html" %} 
 {% load custom_filters %} 
 {% block title %} Mark Attendance {% endblock title %} 
 {% block content %}
@@ -8,7 +8,7 @@
   <nav>
     <ol class="breadcrumb">
       <li class="breadcrumb-item">
-        <a href="{% url 'view_attendance_books' %}">Attendance Books</a>
+        <a href="{% url 'teacher_view_attendance_books' %}">Attendance Books</a>
       </li>
       <li class="breadcrumb-item">Mark Attendance</li>
     </ol>
@@ -21,7 +21,7 @@
     <a
       role="button"
       class="btn btn-outline-primary btn-sm"
-      href="{% url 'view_attendance_books' %}"
+      href="{% url 'teacher_view_attendance_books' %}"
       ><i class="bi bi-eye"></i> View</a
     >
     <a
@@ -221,18 +221,18 @@
     });
     });
     
-        // // Get today's date in YYYY-MM-DD format
-        // const today = new Date().toISOString().split("T")[0];
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split("T")[0];
     
-        // // Get yesterday's date in YYYY-MM-DD format
-        // const yesterday = new Date();
-        // yesterday.setDate(yesterday.getDate() - 1);
-        // const yesterdayFormatted = yesterday.toISOString().split("T")[0];
+        // Get yesterday's date in YYYY-MM-DD format
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayFormatted = yesterday.toISOString().split("T")[0];
     
-        // // Set the min and max attributes to yesterday and today
-        // const dateInput = document.getElementById("dateInput");
-        // dateInput.setAttribute("min", yesterdayFormatted);
-        // dateInput.setAttribute("max", today);
+        // Set the min and max attributes to yesterday and today
+        const dateInput = document.getElementById("dateInput");
+        dateInput.setAttribute("min", yesterdayFormatted);
+        dateInput.setAttribute("max", today);
       </script>
 
       <style>

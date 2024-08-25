@@ -406,7 +406,7 @@ def add_attendance_book_student(request, pk):
     })
 
    
-# View All Attendance Book
+# View All Attendance Books
 @login_required
 @role_required(['admin'])
 def view_attendnace_books(request):
@@ -647,7 +647,6 @@ def delete_course(request, course_id):
         return redirect('view_courses')
     return render(request, 'administrator/delete_course.html', {'course': course})
 
-
 #======================== TEACHER VIEWS ==========================================
 
 # Teacher Dashboard
@@ -681,4 +680,143 @@ def teacher_change_password(request):
         form = PasswordChangeForm(request.user)
     return render(request, 'teacher/change_password.html', {
         'form': form
+    })
+
+# View Teacher Attendance Books
+@login_required
+@role_required(['teacher'])
+def teacher_view_attendance_books(request):
+    userid = request.user.userid
+    print(userid)
+    attendance_books = AttendanceBook.objects.filter(teachers__user__userid=userid)
+    # print(attendance_books)
+    return render(request, 'teacher/view_attendance_books.html', {
+        'attendance_books': attendance_books
+    })
+
+
+@login_required
+@role_required(['teacher'])
+def teacher_mark_attendance(request, pk):
+    attendance_book = get_object_or_404(AttendanceBook, pk=pk)
+    students = attendance_book.students.all()
+    attendance_records = AttendanceRecord.objects.filter(attendance_book=attendance_book).order_by('date', 'session')
+
+    # Create a dictionary to organize records by date and session
+    records_by_date_session = {}
+    for record in attendance_records:
+        if record.date not in records_by_date_session:
+            records_by_date_session[record.date] = {}
+        if record.session not in records_by_date_session[record.date]:
+            records_by_date_session[record.date][record.session] = {}
+        records_by_date_session[record.date][record.session][record.student.user.userid] = record.get_status_display
+
+    # Calculate total sessions and attendance count for each student
+    student_attendance = {}
+    total_sessions = len(set((record.date, record.session) for record in attendance_records))
+    increment_value = int(attendance_book.book_type)
+
+    for student in students:
+        attendance_count = AttendanceRecord.objects.filter(
+            attendance_book=attendance_book, student=student, status=True
+        ).count()
+        attendance_percentage = (attendance_count / total_sessions) * 100 if total_sessions > 0 else 0
+        student_attendance[student.user.userid] = {
+            'count': attendance_count,
+            'percentage': round(attendance_percentage, 2),
+        }
+    
+    if request.method == 'POST':
+        selected_students = request.POST.getlist('attendance')
+        current_date = request.POST.get('date')
+        session = request.POST.get('session')
+
+        try:
+            with transaction.atomic():
+                for student in students:
+                    status = student.user.userid in selected_students
+
+                    # Determine the increment value based on book_type
+                    increment_value = int(attendance_book.book_type)
+
+                    # Check if a record already exists for the same student, date, and session
+                    existing_record = AttendanceRecord.objects.filter(
+                        attendance_book=attendance_book,
+                        student=student,
+                        date=current_date,
+                        session=session
+                    ).first()
+
+                    if existing_record:
+                        # Update the existing record's status and count
+                        existing_record.status = status
+                        existing_record.count = student.attendancerecord_set.filter(status=True).count() + (
+                            increment_value if status else 0
+                        )
+                        existing_record.save()
+                    else:
+                        # Create a new record if it doesn't exist
+                        AttendanceRecord.objects.create(
+                            attendance_book=attendance_book,
+                            student=student,
+                            date=current_date,
+                            session=session,
+                            status=status,
+                            count=student.attendancerecord_set.filter(status=True).count() + (
+                                increment_value if status else 0
+                            )
+                        )
+            
+            messages.success(request, 'Attendance Marked Successfully')
+
+        except Exception as e:
+            # Catch any errors and show a message to the user
+            messages.error(request, f'Error occurred while marking attendance: {str(e)}')
+        return redirect('teacher_view_attendance_records',pk=pk)
+
+    return render(request, 'teacher/mark_attendance.html', {
+        'attendance_book': attendance_book,
+        'students': students,
+        'attendance_records': attendance_records,
+        'records_by_date_session': records_by_date_session,
+        'student_attendance': student_attendance,
+        'total_sessions': total_sessions,
+    })
+
+
+@login_required
+@role_required(['teacher'])
+def teacher_view_attendance_records(request, pk):
+    attendance_book = get_object_or_404(AttendanceBook, pk=pk)
+    students = attendance_book.students.all()
+    attendance_records = AttendanceRecord.objects.filter(attendance_book=attendance_book).order_by('date', 'session')
+
+    # Create a dictionary to organize records by date and session
+    records_by_date_session = {}
+    for record in attendance_records:
+        if record.date not in records_by_date_session:
+            records_by_date_session[record.date] = {}
+        if record.session not in records_by_date_session[record.date]:
+            records_by_date_session[record.date][record.session] = {}
+        records_by_date_session[record.date][record.session][record.student.user.userid] = record.get_status_display
+
+    # Calculate total sessions and attendance count for each student
+    student_attendance = {}
+    total_sessions = len(set((record.date, record.session) for record in attendance_records))
+
+    for student in students:
+        attendance_count = AttendanceRecord.objects.filter(
+            attendance_book=attendance_book, student=student, status=True
+        ).count()
+        attendance_percentage = (attendance_count / total_sessions) * 100 if total_sessions > 0 else 0
+        student_attendance[student.user.userid] = {
+            'count': attendance_count,
+            'percentage': round(attendance_percentage, 2),
+        }
+    return render(request, 'teacher/view_attendance_records.html', {
+        'attendance_book': attendance_book,
+        'students': students,
+        'records_by_date_session': records_by_date_session,
+        'student_attendance': student_attendance,
+        'total_sessions':total_sessions
     })

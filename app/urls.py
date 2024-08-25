@@ -41,7 +41,7 @@ urlpatterns = [
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
     path('teacher/profile/', views.teacher_profile, name='teacher_profile'),
     path('teacher/change_password/', views.teacher_change_password, name='teacher_change_password'),
-
-    # path('teacher/dashboard/attendance_books/', views.teacher_view_attendnace_books, name='teacher_view_attendnace_books'),
-    # path('teacher/dashboard/attendance/mark/<int:pk>/', views.teacher_mark_attendance, name='teacher_mark_attendance'),
+    path('teacher/dashboard/attendance_books/', views.teacher_view_attendance_books, name='teacher_view_attendance_books'),
+    path('teacher/dashboard/attendance/<int:pk>/', views.teacher_view_attendance_records, name='teacher_view_attendance_records'),
+    path('teacher/dashboard/attendance/mark/<int:pk>/', views.teacher_mark_attendance, name='teacher_mark_attendance'),
 ]
