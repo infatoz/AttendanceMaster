@@ -2,6 +2,11 @@
 from django import forms
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from django.utils import timezone
+from django.core.mail import send_mass_mail
+import datetime
+from celery import shared_task
+from twilio.rest import Client  # Twilio for SMS
 
 
 # Custom User Manager
@@ -107,7 +112,7 @@ class Student(models.Model):
     )
 
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,primary_key=True,unique=True)
-    usn = models.CharField(max_length=10)
+    usn = models.CharField(max_length=50)
     parent_phoneno = models.CharField(max_length=10,unique=False,null=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     year = models.CharField(max_length=10, choices=YEAR_CHOICES)

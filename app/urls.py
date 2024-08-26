@@ -3,7 +3,8 @@ from . import views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path('', views.user_login, name='home'),
+    # path('', views.user_login, name='home'),
+    path('', views.send_bulk_notifications_view, name='send_bulk_notifications_view'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),

@@ -24,12 +24,12 @@
       href="{% url 'teacher_view_attendance_books' %}"
       ><i class="bi bi-eye"></i> View</a
     >
-    <a
+    <!-- <a
       role="button"
       class="btn btn-outline-primary btn-sm"
       href="{% url 'add_attendance_book' %}"
       ><i class="bi bi-plus"></i> Add</a
-    >
+    > -->
   </div>
 </section>
 
@@ -155,7 +155,7 @@
                   {% for session, records in sessions.items %}
                   
                         {% if records|get_item:student.user.userid == 'A' %}
-                        <td style="background-color: red;color: white;font-weight: 600;">{{ records|get_item:student.user.userid }}</td>
+                        <td class="bg-danger-subtle">{{ records|get_item:student.user.userid }}</td>
                         {% else %}
                         <td>{{ records|get_item:student.user.userid }}</td>
                   {% endif %}
@@ -165,7 +165,7 @@
                     <strong>{{student_attendance|get_item:student.user.userid|get_item:'count'}}/{{total_sessions}}</strong>
                   </td>
                     {% if student_attendance|get_item:student.user.userid|get_item:'percentage' < 75 %}
-                    <td style="background-color: red;color: white;font-weight: 600;"><strong>{{student_attendance|get_item:student.user.userid|get_item:'percentage'}}%</strong></td>
+                    <td class="bg-danger-subtle"><strong>{{student_attendance|get_item:student.user.userid|get_item:'percentage'}}%</strong></td>
                     {% else %}
                     <td><strong>{{student_attendance|get_item:student.user.userid|get_item:'percentage'}}%</strong></td>
                     {% endif %}

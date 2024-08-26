@@ -11,7 +11,9 @@ from django.db import transaction
 from django.contrib import messages
 from app.models import Admin, AttendanceBook, AttendanceRecord, Course, CustomUser, Department, Student, Teacher
 from django.contrib.auth.forms import PasswordChangeForm
-
+from django.shortcuts import render, redirect
+from .tasks import send_daily_absent_notifications, send_notifications
+from .models import AttendanceRecord
 
 # All user login [Admin/HOD/Teacher/Student]
 def user_login(request):
@@ -417,7 +419,7 @@ def view_attendnace_books(request):
 
 
 @login_required
-@role_required(['admin', 'teacher'])
+@role_required(['admin'])
 def mark_attendance(request, pk):
     attendance_book = get_object_or_404(AttendanceBook, pk=pk)
     students = attendance_book.students.all()
@@ -433,14 +435,18 @@ def mark_attendance(request, pk):
         records_by_date_session[record.date][record.session][record.student.user.userid] = record.get_status_display
 
     # Calculate total sessions and attendance count for each student
-    student_attendance = {}
-    total_sessions = len(set((record.date, record.session) for record in attendance_records))
     increment_value = int(attendance_book.book_type)
+    print(increment_value)
+    student_attendance = {}
+    total_sessions = len(set((record.date, record.session) for record in attendance_records))*increment_value
+    # total_sessions = (total_sessions*increment_value)
 
     for student in students:
         attendance_count = AttendanceRecord.objects.filter(
             attendance_book=attendance_book, student=student, status=True
         ).count()
+        attendance_count = (attendance_count * increment_value)
+        print(attendance_count)
         attendance_percentage = (attendance_count / total_sessions) * 100 if total_sessions > 0 else 0
         student_attendance[student.user.userid] = {
             'count': attendance_count,
@@ -522,13 +528,18 @@ def view_attendance_records(request, pk):
         records_by_date_session[record.date][record.session][record.student.user.userid] = record.get_status_display
 
     # Calculate total sessions and attendance count for each student
+    increment_value = int(attendance_book.book_type)
+    print(increment_value)
     student_attendance = {}
-    total_sessions = len(set((record.date, record.session) for record in attendance_records))
+    total_sessions = len(set((record.date, record.session) for record in attendance_records))*increment_value
+    # total_sessions = (total_sessions*increment_value)
 
     for student in students:
         attendance_count = AttendanceRecord.objects.filter(
             attendance_book=attendance_book, student=student, status=True
         ).count()
+        attendance_count = (attendance_count * increment_value)
+        print(attendance_count)
         attendance_percentage = (attendance_count / total_sessions) * 100 if total_sessions > 0 else 0
         student_attendance[student.user.userid] = {
             'count': attendance_count,
@@ -712,14 +723,18 @@ def teacher_mark_attendance(request, pk):
         records_by_date_session[record.date][record.session][record.student.user.userid] = record.get_status_display
 
     # Calculate total sessions and attendance count for each student
-    student_attendance = {}
-    total_sessions = len(set((record.date, record.session) for record in attendance_records))
     increment_value = int(attendance_book.book_type)
+    print(increment_value)
+    student_attendance = {}
+    total_sessions = len(set((record.date, record.session) for record in attendance_records))*increment_value
+    # total_sessions = (total_sessions*increment_value)
 
     for student in students:
         attendance_count = AttendanceRecord.objects.filter(
             attendance_book=attendance_book, student=student, status=True
         ).count()
+        attendance_count = (attendance_count * increment_value)
+        print(attendance_count)
         attendance_percentage = (attendance_count / total_sessions) * 100 if total_sessions > 0 else 0
         student_attendance[student.user.userid] = {
             'count': attendance_count,
@@ -738,6 +753,7 @@ def teacher_mark_attendance(request, pk):
 
                     # Determine the increment value based on book_type
                     increment_value = int(attendance_book.book_type)
+                    # print(increment_value)
 
                     # Check if a record already exists for the same student, date, and session
                     existing_record = AttendanceRecord.objects.filter(
@@ -801,13 +817,18 @@ def teacher_view_attendance_records(request, pk):
         records_by_date_session[record.date][record.session][record.student.user.userid] = record.get_status_display
 
     # Calculate total sessions and attendance count for each student
+    increment_value = int(attendance_book.book_type)
+    print(increment_value)
     student_attendance = {}
-    total_sessions = len(set((record.date, record.session) for record in attendance_records))
+    total_sessions = len(set((record.date, record.session) for record in attendance_records))*increment_value
+    # total_sessions = (total_sessions*increment_value)
 
     for student in students:
         attendance_count = AttendanceRecord.objects.filter(
             attendance_book=attendance_book, student=student, status=True
         ).count()
+        attendance_count = (attendance_count * increment_value)
+        print(attendance_count)
         attendance_percentage = (attendance_count / total_sessions) * 100 if total_sessions > 0 else 0
         student_attendance[student.user.userid] = {
             'count': attendance_count,
@@ -820,3 +841,15 @@ def teacher_view_attendance_records(request, pk):
         'student_attendance': student_attendance,
         'total_sessions':total_sessions
     })
+
+
+def send_bulk_notifications_view(request):
+    if request.method == 'POST':
+        selected_date = request.POST['date']
+        absentees = AttendanceRecord.objects.filter(date=selected_date, status=False)
+        print(len(absentees))
+        for user in absentees:
+            print(user.student.user.userid,"-",user.student.user.userid)
+        send_notifications(absentees)
+        return redirect('send_bulk_notifications_view')
+    return render(request, 'send_bulk_notifications.html')
