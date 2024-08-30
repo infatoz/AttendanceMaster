@@ -1,13 +1,34 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.contrib import messages
-
+from django import forms
 from app.models import Admin, AttendanceBook, CustomUser, Student, Teacher, Department, Course
 
 
+# class UserLoginForm(AuthenticationForm):
+#     username = forms.CharField(label='User ID', max_length=15,)
+#     password = forms.CharField(label='Password', widget=forms.PasswordInput)
+
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+
 class UserLoginForm(AuthenticationForm):
-    username = forms.CharField(label='User ID', max_length=10)
-    password = forms.CharField(label='Password', widget=forms.PasswordInput)
+    username = forms.CharField(
+        label='User ID',
+        max_length=15,
+        widget=forms.TextInput(attrs={
+            'autocomplete': 'off',  # Disables autocomplete
+            'autocorrect': 'off',   # Disables autocorrect for some browsers
+            'spellcheck': 'false',  # Disables spellcheck
+            'autocapitalize': 'none' # Prevents automatic capitalization
+        })
+    )
+    password = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={
+            'autocomplete': 'off',  # Disables autocomplete
+        })
+    )
+
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -53,19 +74,6 @@ class AttendanceBookForm(forms.ModelForm):
     class Meta:
         model = AttendanceBook
         fields = ['name', 'book_code', 'book_type']
-
-# class TeacherSelectionForm(forms.ModelForm):
-#     class Meta:
-#         model = AttendanceBook
-#         fields = ['']
-
-# class StudentSelectionForm(forms.ModelForm):
-#     class Meta:
-#         model = AttendanceBook
-#         fields = ['students']
-
-# class TeacherCSVUploadForm(forms.Form):
-#     csv_file = forms.FileField(required=True)
 
 class TeacherCSVUploadForm(forms.Form):
     csv_file = forms.FileField(

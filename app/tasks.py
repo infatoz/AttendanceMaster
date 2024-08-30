@@ -33,8 +33,8 @@ def send_notifications(absentees):
         ))
 
         # Prepare SMS
-        sms_body = f'{student.usn} was absent for {class_details}.'
-        sms_messages.append((parent_phoneno, sms_body))
+        # sms_body = f'{student.usn} was absent for {class_details}.'
+        # sms_messages.append((parent_phoneno, sms_body))
 
     # Send all emails
     send_mass_mail(tuple(email_messages))

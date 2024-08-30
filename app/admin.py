@@ -1,6 +1,5 @@
 from django.contrib import admin
 from app.models import Admin, AttendanceBook, AttendanceRecord, Course, CustomUser, Department, Student, Teacher
-from django.contrib.auth.admin import UserAdmin
 
 
 admin.site.register(CustomUser)

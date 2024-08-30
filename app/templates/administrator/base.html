@@ -97,7 +97,8 @@
       <!-- End Logo -->
 
       <div class="search-bar">
-        <form
+
+        <!-- <form
           class="search-form d-flex align-items-center"
           method="POST"
           action="#"
@@ -111,19 +112,19 @@
           <button type="submit" title="Search">
             <i class="bi bi-search"></i>
           </button>
-        </form>
+        </form> -->
       </div>
       <!-- End Search Bar -->
 
       <nav class="header-nav ms-auto">
-        <ul class="d-flex align-items-center">
+        <!-- <ul class="d-flex align-items-center">
           <li class="nav-item d-block d-lg-none">
             <a class="nav-link nav-icon search-bar-toggle" href="#">
               <i class="bi bi-search"></i>
             </a>
           </li>
-          <!-- End Search Icon-->
-        </ul>
+          End Search Icon
+        </ul> -->
       </nav>
       <!-- End Icons Navigation -->
     </header>
@@ -136,6 +137,12 @@
           <a class="nav-link" href="{% url 'admin_dashboard' %}">
             <i class="bi bi-grid"></i>
             <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="./admin">
+            <i class="bi bi-grid"></i>
+            <span>Super Admin Dashboard</span>
           </a>
         </li>
         <!-- End Dashboard Nav -->
@@ -359,6 +366,7 @@
           </ul>
         </li>
         <!-- End Nav -->
+        http://localhost:8000/admin/
 
         <li class="nav-heading">Settings</li>
         <li class="nav-item">
@@ -420,6 +428,7 @@
             
           </ul>
         </li>
+        
         <li class="nav-item">
           <!-- <a type="button" data-bs-toggle="modal" data-bs-target="#confirmModal" class="nav-link" href="{% url 'logout' %}">
             <i class="bi bi-box-arrow-right"></i>
