@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from django.contrib import messages
+from celery.schedules import crontab
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'import_export',
     'app'
 ]
 
@@ -72,6 +75,16 @@ EMAIL_HOST_USER = 'manjunathdevadiga131@gmail.com'
 EMAIL_HOST_PASSWORD = 'dmrgborknxhxkvbl'
 DEFAULT_FROM_EMAIL = 'Manjunath Devadiga <manjunathdevadiga131@gmail.com>'
 
+TWILIO_ACCOUNT_SID = 'AC0f366c91d418587e0bc172fcd63950b9'
+TWILIO_AUTH_TOKEN = '847fb9fd63ba5e22512e467f99423ac6'
+TWILIO_PHONE_NUMBER = '+16502002116'  # Your Twilio phone number
+
+CELERY_BEAT_SCHEDULE = {
+    'send-absent-sms-daily': {
+        'task': 'your_app.tasks.send_bulk_sms_to_absentees',
+        'schedule': crontab(hour=16, minute=0),  # Schedule task to run at 4:00 PM every day
+    },
+}
 
 ROOT_URLCONF = 'attendance_master.urls'
 
@@ -100,10 +113,20 @@ DATE_INPUT_FORMATS = ['%d/%m/%Y']
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": "postgres",
+        "USER": "postgres",
+        "PASSWORD": "password",
+        "HOST": "127.0.0.1",
+        "PORT": "5432",
     }
 }
 

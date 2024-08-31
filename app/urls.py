@@ -4,7 +4,7 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     # path('', views.user_login, name='home'),
-    path('', views.send_bulk_notifications_view, name='send_bulk_notifications_view'),
+    # path('', views.send_bulk_notifications_view, name='send_bulk_notifications_view'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
@@ -39,6 +39,7 @@ urlpatterns = [
     path('administrator/dashboard/course/delete/<str:course_id>/', views.delete_course, name='delete_course'),
     path('administrator/profile/', views.admin_profile, name='admin_profile'),
     path('administrator/change_password/', views.admin_change_password, name='admin_change_password'),
+    path('administrator/send_sms/', views.send_absent_sms_view, name='send_absent_sms_view'),
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
     path('teacher/profile/', views.teacher_profile, name='teacher_profile'),
     path('teacher/change_password/', views.teacher_change_password, name='teacher_change_password'),

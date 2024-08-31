@@ -1,9 +1,11 @@
-from collections import defaultdict
+from django.conf import settings
+from django.http import JsonResponse
+from django.utils import timezone
 import csv
 from datetime import datetime
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from app.forms import AddCourseForm, AddDepartmentForm, AttendanceBookForm, CustomUserCreationForm, StudentCSVUploadForm, StudentRegistrationForm, TeacherCSVUploadForm, TeacherRegistrationForm,  UserLoginForm
 from django.contrib.auth.decorators import login_required
 from app.decorators import role_required
@@ -12,8 +14,12 @@ from django.contrib import messages
 from app.models import Admin, AttendanceBook, AttendanceRecord, Course, CustomUser, Department, Student, Teacher
 from django.contrib.auth.forms import PasswordChangeForm
 from django.shortcuts import render, redirect
-from .tasks import send_daily_absent_notifications, send_notifications
 from .models import AttendanceRecord
+from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.db.models import Q
+from .tasks import get_absent_details_by_date, send_sms_to_absentees
+
 
 # All user login [Admin/HOD/Teacher/Student]
 def user_login(request):
@@ -203,6 +209,81 @@ def upload_teachers_csv(request):
         form = TeacherCSVUploadForm()
     return render(request, 'administrator/upload_teachers_csv.html', {'form': form})
 
+# @login_required
+# @role_required(['admin'])
+# @transaction.atomic
+# def upload_teachers_csv(request):
+#     if request.method == 'POST':
+#         form = TeacherCSVUploadForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             csv_file = request.FILES['csv_file']
+#             try:
+#                 # Decode the CSV file
+#                 csv_reader = csv.DictReader(csv_file.read().decode('utf-8').splitlines())
+                
+#                 # Fetch existing users in one query
+#                 existing_users = set(CustomUser.objects.filter(
+#                     userid__in=[row['userid'] for row in csv_reader]
+#                 ).values_list('userid', flat=True))
+
+#                 # Reset reader after fetching existing users
+#                 csv_file.seek(0)
+#                 csv_reader = csv.DictReader(csv_file.read().decode('utf-8').splitlines())
+
+#                 users_to_create = []
+#                 teachers_to_create = []
+#                 departments = {}
+
+#                 for row in csv_reader:
+#                     userid = row.get('userid')
+                    
+#                     # Skip if the user already exists
+#                     if userid in existing_users:
+#                         continue
+                    
+#                     fullname = row.get('fullname')
+#                     phone_no = row.get('phone_no')
+#                     email = row.get('email')
+#                     dept_id = row.get('dept_id')
+#                     photo_url = row.get('photo_url')
+
+#                     # Create user instance
+#                     user = CustomUser(
+#                         userid=userid,
+#                         fullname=fullname,
+#                         phone_no=phone_no,
+#                         email=email,
+#                         role='teacher'
+#                     )
+#                     user.set_password('Welcome@12345')  # Setting password for later bulk update
+#                     users_to_create.append(user)
+
+#                     # Create or get department
+#                     if dept_id not in departments:
+#                         department, created = Department.objects.get_or_create(dept_id=dept_id)
+#                         departments[dept_id] = department
+                    
+#                     # Create teacher instance
+#                     teachers_to_create.append(
+#                         Teacher(
+#                             user=user,
+#                             department=departments[dept_id],
+#                             photo_url=photo_url
+#                         )
+#                     )
+
+#                 # Bulk create users and teachers
+#                 CustomUser.objects.bulk_create(users_to_create, ignore_conflicts=True)
+#                 Teacher.objects.bulk_create(teachers_to_create, ignore_conflicts=True)
+
+#                 messages.success(request, 'Teachers uploaded successfully!')
+#             except Exception as e:
+#                 messages.error(request, f'Error processing file: {e}')
+#             return redirect('view_teachers')
+#     else:
+#         form = TeacherCSVUploadForm()
+#     return render(request, 'administrator/upload_teachers_csv.html', {'form': form})
+
 # Add Student
 @login_required
 @role_required(['admin'])
@@ -227,13 +308,68 @@ def add_student(request):
     return render(request, 'administrator/add_student.html', {'user_form': user_form, 'student_form': student_form})
 
 # View All Students
+# @login_required
+# @role_required(['admin'])
+# @transaction.atomic
+# def view_students(request):
+#     students = Student.objects.all()
+#     return render(request, 'administrator/view_students.html',{'students': students})
+
 @login_required
 @role_required(['admin'])
-@transaction.atomic
 def view_students(request):
-    students = Student.objects.all()
-    return render(request, 'administrator/view_students.html',{'students': students})
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        start = int(request.GET.get('start', 0))
+        length = int(request.GET.get('length', 10))
+        search_value = request.GET.get('search[value]', '')
 
+        # Filter and fetch students from the database based on search criteria across multiple fields
+        students = Student.objects.filter(
+            Q(user__fullname__icontains=search_value) |
+            Q(user__userid__icontains=search_value) |
+            Q(course__course_id__icontains=search_value) |
+            Q(year__icontains=search_value) |
+            Q(section__icontains=search_value) |
+            Q(user__email__icontains=search_value) |
+            Q(parent_phoneno__icontains=search_value) |
+            Q(user__phone_no__icontains=search_value)
+        ).select_related('user', 'course')
+
+        total_records = students.count()
+
+        # Implement pagination
+        paginator = Paginator(students, length)
+        page_number = (start // length) + 1
+        page_obj = paginator.get_page(page_number)
+
+        # Prepare data for DataTables
+        data = [
+            {
+                "userid": student.user.userid,
+                "photo_url": student.photo_url,
+                "fullname": student.user.fullname,
+                "course": student.course.course_id,
+                "year": student.get_year_display(),
+                "section": student.section,
+                "email": student.user.email,
+                "parent_phoneno": student.parent_phoneno,
+                "phone_no": student.user.phone_no,
+                "edit_url": reverse('edit_student', args=[student.user.userid]),
+                "delete_url": reverse('delete_student', args=[student.user.userid])
+            }
+            for student in page_obj
+        ]
+
+        response = {
+            "draw": int(request.GET.get('draw', 0)),
+            "recordsTotal": total_records,
+            "recordsFiltered": total_records,
+            "data": data,
+        }
+        return JsonResponse(response)
+
+    # Render the initial HTML page with DataTables setup
+    return render(request, 'administrator/view_students.html')
 
 # Edit Student
 @login_required
@@ -272,7 +408,79 @@ def delete_student(request, student_id):
     return render(request, 'administrator/delete_student.html', {'student': student})
 
 
-# Upload Students via CSV
+# # Upload Students via CSV
+# @login_required
+# @role_required(['admin'])
+# @transaction.atomic
+# def upload_students_csv(request):
+#     if request.method == 'POST':
+#         form = StudentCSVUploadForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             csv_file = request.FILES['csv_file']
+#             try:
+#                 # Process CSV file
+#                 csv_reader = csv.DictReader(csv_file.read().decode('utf-8').splitlines())
+#                 for row in csv_reader:
+#                     # print(row)
+#                     userid = row.get('userid')
+#                     fullname = row.get('fullname')
+#                     phone_no = row.get('phone_no')
+#                     parent_phoneno = row.get('parent_phoneno')
+#                     email = row.get('email')
+#                     course_id = row.get('course_id')
+#                     usn = row.get('usn')
+#                     year=row.get('year')
+#                     section=row.get('section')
+#                     gender=row.get('gender')
+#                     dob = row.get('dob')
+#                     photo_url = row.get('photo_url')
+
+#                     # Convert date format from DD/MM/YYYY to YYYY-MM-DD
+#                     try:
+#                         dob = datetime.strptime(dob, '%d/%m/%Y').strftime('%Y-%m-%d')
+#                     except ValueError:
+#                         messages.error(request, f"Error processing date for user {userid}: Invalid date format.")
+#                         continue
+                    
+#                     # Check if user already exists
+#                     if CustomUser.objects.filter(userid=userid).exists():
+#                         continue
+                    
+#                     # Create user
+#                     user = CustomUser(
+#                         userid=userid,
+#                         fullname=fullname,
+#                         phone_no=phone_no,
+#                         email=email,
+#                         role='student'
+#                     )
+#                     user.set_password('Welcome@12345')
+#                     user.save()
+
+#                     # Get or create course
+#                     course, created = Course.objects.get_or_create(course_id=course_id)
+                    
+#                     # Create student
+#                     Student.objects.create(
+#                         user=user,
+#                         usn=usn,
+#                         parent_phoneno=parent_phoneno,
+#                         course=course,
+#                         year=year,
+#                         section=section,
+#                         gender=gender,
+#                         dob=dob,
+#                         photo_url=photo_url
+#                     )
+                    
+#                 messages.success(request, 'Students uploaded successfully!')
+#             except Exception as e:
+#                 messages.error(request, f'Error processing file: {e}')
+#             return redirect('view_students')
+#     else:
+#         form = StudentCSVUploadForm()
+#     return render(request, 'administrator/upload_students_csv.html', {'form': form})
+
 @login_required
 @role_required(['admin'])
 @transaction.atomic
@@ -282,10 +490,13 @@ def upload_students_csv(request):
         if form.is_valid():
             csv_file = request.FILES['csv_file']
             try:
-                # Process CSV file
+                # Read the CSV file
                 csv_reader = csv.DictReader(csv_file.read().decode('utf-8').splitlines())
+                users_to_create = []
+                students_to_create = []
+                course_cache = {}  # Cache to avoid repeated DB hits for courses
+
                 for row in csv_reader:
-                    # print(row)
                     userid = row.get('userid')
                     fullname = row.get('fullname')
                     phone_no = row.get('phone_no')
@@ -293,24 +504,32 @@ def upload_students_csv(request):
                     email = row.get('email')
                     course_id = row.get('course_id')
                     usn = row.get('usn')
-                    year=row.get('year')
-                    section=row.get('section')
-                    gender=row.get('gender')
+                    year = row.get('year')
+                    section = row.get('section')
+                    gender = row.get('gender')
                     dob = row.get('dob')
                     photo_url = row.get('photo_url')
 
                     # Convert date format from DD/MM/YYYY to YYYY-MM-DD
                     try:
-                        dob = datetime.strptime(dob, '%d/%m/%Y').strftime('%Y-%m-%d')
+                        dob = datetime.strptime(dob, '%d/%m/%Y').date()
                     except ValueError:
-                        messages.error(request, f"Error processing date for user {userid}: Invalid date format.")
+                        messages.error(request, f"Invalid date format for user {userid}. Expected DD/MM/YYYY.")
                         continue
-                    
-                    # Check if user already exists
+
+                    # Skip if user already exists
                     if CustomUser.objects.filter(userid=userid).exists():
+                        messages.warning(request, f"User {userid} already exists. Skipping.")
                         continue
-                    
-                    # Create user
+
+                    # Get or create course, using a cache to reduce DB hits
+                    if course_id not in course_cache:
+                        course, created = Course.objects.get_or_create(course_id=course_id)
+                        course_cache[course_id] = course
+                    else:
+                        course = course_cache[course_id]
+
+                    # Prepare user and student objects for bulk creation
                     user = CustomUser(
                         userid=userid,
                         fullname=fullname,
@@ -319,13 +538,9 @@ def upload_students_csv(request):
                         role='student'
                     )
                     user.set_password('Welcome@12345')
-                    user.save()
+                    users_to_create.append(user)
 
-                    # Get or create course
-                    course, created = Course.objects.get_or_create(course_id=course_id)
-                    
-                    # Create student
-                    Student.objects.create(
+                    student = Student(
                         user=user,
                         usn=usn,
                         parent_phoneno=parent_phoneno,
@@ -336,8 +551,15 @@ def upload_students_csv(request):
                         dob=dob,
                         photo_url=photo_url
                     )
-                    
+                    students_to_create.append(student)
+
+                # Bulk create users and students
+                if users_to_create:
+                    CustomUser.objects.bulk_create(users_to_create, batch_size=100)
+                    Student.objects.bulk_create(students_to_create, batch_size=100)
+
                 messages.success(request, 'Students uploaded successfully!')
+
             except Exception as e:
                 messages.error(request, f'Error processing file: {e}')
             return redirect('view_students')
@@ -418,6 +640,7 @@ def view_attendnace_books(request):
     })
 
 
+# Admin Mark Attendance
 @login_required
 @role_required(['admin'])
 def mark_attendance(request, pk):
@@ -706,6 +929,7 @@ def teacher_view_attendance_books(request):
     })
 
 
+# Teacher Mark Attendance
 @login_required
 @role_required(['teacher'])
 def teacher_mark_attendance(request, pk):
@@ -843,13 +1067,18 @@ def teacher_view_attendance_records(request, pk):
     })
 
 
-def send_bulk_notifications_view(request):
+
+def send_absent_sms_view(request):
     if request.method == 'POST':
-        selected_date = request.POST['date']
-        absentees = AttendanceRecord.objects.filter(date=selected_date, status=False)
-        print(len(absentees))
-        for user in absentees:
-            print(user.student.user.userid,"-",user.student.user.userid)
-        send_notifications(absentees)
-        return redirect('send_bulk_notifications_view')
-    return render(request, 'send_bulk_notifications.html')
+        selected_date = request.POST.get('selected_date')  # Assume date input in 'YYYY-MM-DD' format
+        absentee_details = get_absent_details_by_date(selected_date)
+        
+        if absentee_details:
+            send_sms_to_absentees(absentee_details)
+            messages.success(request, f'SMS sent to Absentees')
+            return render(request, 'administrator/send_sms.html')
+        else:
+            messages.error(request, f'No Absentees found')
+            return render(request, 'administrator/send_sms.html')
+    
+    return render(request, 'administrator/send_sms.html')

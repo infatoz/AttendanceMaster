@@ -158,16 +158,76 @@
 
 <script>
   $(document).ready(function () {
-    $("#studentsTable").DataTable({
-      order: [[1, "asc"]],
-      fixedColumns: {
-        start: 1,
-        end: 1
-    },
-    paging: true,
-    scrollCollapse: false,
-    scrollX: true,
-    scrollY: false,
+    $('#studentsTable').DataTable({
+      pageLength: 150,
+      lengthMenu: [150,500, 1000, 1500, 2000, 2500, 3000,4000,5000],
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{% url 'view_students' %}",
+            type: "GET"
+        },
+        columns: [
+            { data: "userid" },
+            {
+                data: "photo_url",
+                render: function (data, type, row) {
+                    return `<img src="${data}" alt="${row.fullname}" title="${row.fullname}" style="height: 80px" />`;
+                }
+            },
+            { data: "fullname" },
+            { data: "course" },
+            { data: "year" },
+            { data: "section" },
+            { data: "email" },
+            { data: "parent_phoneno" },
+            { data: "phone_no" },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return `
+                        <div class="btn-group" role="group" aria-label="Action">
+                            <a role="button" class="btn btn-outline-secondary btn-sm" href="${row.edit_url}">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <a role="button" class="btn btn-outline-primary btn-sm" href="${row.delete_url}">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                        </div>
+                    `;
+                }
+            }
+        ],
+        order: [[0, "asc"]],
+        paging: true,
+        scrollCollapse: false,
+        scrollX: true,
+        scrollY: false,
+        dom: "Bfrtip",
+        buttons:[
+            {
+          extend: "csv",
+          text: "CSV",
+          className: "btn btn-sm btn-outline-secondary",
+          exportOptions: {
+            columns: [0, 2, 3, 4, 5, 6, 7, 8], // Exclude the last column
+          },
+        }
+        ]
+    });
+});
+
+  // $(document).ready(function () {
+  //   $("#studentsTable").DataTable({
+  //     order: [[1, "asc"]],
+  //     fixedColumns: {
+  //       start: 1,
+  //       end: 1
+  //   },
+  //   paging: true,
+  //   scrollCollapse: false,
+  //   scrollX: true,
+  //   scrollY: false,
       // pageLength: 50,
       // lengthMenu: [50, 100, 150, 200, 250, 500],
       // dom: "Bfrtip",
@@ -213,8 +273,8 @@
       //     },
       //   },
       // ],
-    });
-  });
+  //   });
+  // });
 </script>
 
 {% endblock content %}

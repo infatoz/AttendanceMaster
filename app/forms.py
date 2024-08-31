@@ -106,3 +106,4 @@ class StudentCSVUploadForm(forms.Form):
             raise forms.ValidationError("Only .csv files are allowed.")
 
         return file
+
