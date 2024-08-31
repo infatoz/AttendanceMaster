@@ -75,10 +75,6 @@ EMAIL_HOST_USER = 'manjunathdevadiga131@gmail.com'
 EMAIL_HOST_PASSWORD = 'dmrgborknxhxkvbl'
 DEFAULT_FROM_EMAIL = 'Manjunath Devadiga <manjunathdevadiga131@gmail.com>'
 
-TWILIO_ACCOUNT_SID = 'AC0f366c91d418587e0bc172fcd63950b9'
-TWILIO_AUTH_TOKEN = '847fb9fd63ba5e22512e467f99423ac6'
-TWILIO_PHONE_NUMBER = '+16502002116'  # Your Twilio phone number
-
 CELERY_BEAT_SCHEDULE = {
     'send-absent-sms-daily': {
         'task': 'your_app.tasks.send_bulk_sms_to_absentees',
