@@ -6,7 +6,7 @@ from datetime import datetime
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.urls import reverse, reverse_lazy
-from app.forms import AddCourseForm, AddDepartmentForm, AttendanceBookForm, CustomUserCreationForm, StudentCSVUploadForm, StudentRegistrationForm, TeacherCSVUploadForm, TeacherRegistrationForm,  UserLoginForm
+from app.forms import AddCourseForm, AddDepartmentForm, AttendanceBookForm, CustomUserCreationForm, NotificationForm, StudentCSVUploadForm, StudentRegistrationForm, TeacherCSVUploadForm, TeacherRegistrationForm,  UserLoginForm
 from django.contrib.auth.decorators import login_required
 from app.decorators import role_required
 from django.db import transaction
@@ -14,13 +14,13 @@ from django.contrib import messages
 from app.models import Admin, AttendanceBook, AttendanceRecord, Course, CustomUser, Department, Student, Teacher
 from django.contrib.auth.forms import PasswordChangeForm
 from django.shortcuts import render, redirect
-from .models import AttendanceRecord
+from .models import HOD, AttendanceRecord, Notification
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Q
 from .tasks import get_absent_details_by_date, send_sms_to_absentees
 
-
+# Home Page
 def home_view(request):
     return render(request,'index.html')
 
@@ -62,7 +62,35 @@ def user_logout(request):
 @login_required
 @role_required(['admin'])
 def admin_dashboard(request):
-    return render(request, 'administrator/dashboard.html')
+    # Count the total number of each entity
+    total_students = Student.objects.count()
+    total_teachers = Teacher.objects.count()
+    total_admins = Admin.objects.count()
+    total_hods = HOD.objects.count()
+    total_attendance_books = AttendanceBook.objects.count()
+    total_departments = Department.objects.count()
+    total_courses = Course.objects.count()
+    
+    # Get today's date
+    today = timezone.now().date()
+    
+    # Count the number of absent students today
+    absent_students_today = AttendanceRecord.objects.filter(
+        date=today,
+        status=False
+    ).values('student').distinct().count()
+    
+    context = {
+        'total_students': total_students,
+        'total_teachers': total_teachers,
+        'total_admins': total_admins,
+        'total_hods': total_hods,
+        'total_attendance_books': total_attendance_books,
+        'absent_students_today': absent_students_today,
+        'total_departments':total_departments,
+        'total_courses':total_courses
+    }
+    return render(request, 'administrator/dashboard.html',context)
 
 
 # Admin Profile
@@ -664,6 +692,18 @@ def upload_students_csv(request):
     return render(request, 'administrator/upload_students_csv.html', {'form': form})
 
 
+# Add Admin Notifications
+def create_notification(request):
+    if request.method == 'POST':
+        form = NotificationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('notification_list')
+    else:
+        form = NotificationForm()
+    return render(request, 'create_notification.html', {'form': form})
+
+
 #===================== ATTENDANCE BOOKS ================================
 
 # Add New Attendance Books
@@ -1158,7 +1198,15 @@ def delete_course(request, course_id):
 @login_required
 @role_required(['teacher'])
 def teacher_dashboard(request):
-    return render(request, 'teacher/dashboard.html')
+    userid = request.user.userid
+    total_attendance_books = AttendanceBook.objects.filter(teachers__user__userid=userid).count()
+    notifications = Notification.objects.all().order_by('-created_at')
+
+    context = {
+        'total_attendance_books':total_attendance_books,
+        'notifications':notifications
+    }
+    return render(request, 'teacher/dashboard.html',context)
 
 # Teacher Profile
 @login_required
@@ -1200,100 +1248,7 @@ def teacher_view_attendance_books(request):
     })
 
 
-# # Teacher Mark Attendance
-# @login_required
-# @role_required(['teacher'])
-# def teacher_mark_attendance(request, pk):
-#     attendance_book = get_object_or_404(AttendanceBook, pk=pk)
-#     students = attendance_book.students.all()
-#     attendance_records = AttendanceRecord.objects.filter(attendance_book=attendance_book).order_by('date', 'session')
-
-#     # Create a dictionary to organize records by date and session
-#     records_by_date_session = {}
-#     for record in attendance_records:
-#         if record.date not in records_by_date_session:
-#             records_by_date_session[record.date] = {}
-#         if record.session not in records_by_date_session[record.date]:
-#             records_by_date_session[record.date][record.session] = {}
-#         records_by_date_session[record.date][record.session][record.student.user.userid] = record.get_status_display
-
-#     # Calculate total sessions and attendance count for each student
-#     increment_value = int(attendance_book.book_type)
-#     # print(increment_value)
-#     student_attendance = {}
-#     total_sessions = len(set((record.date, record.session) for record in attendance_records))*increment_value
-#     # total_sessions = (total_sessions*increment_value)
-
-#     for student in students:
-#         attendance_count = AttendanceRecord.objects.filter(
-#             attendance_book=attendance_book, student=student, status=True
-#         ).count()
-#         attendance_count = (attendance_count * increment_value)
-#         # print(attendance_count)
-#         attendance_percentage = (attendance_count / total_sessions) * 100 if total_sessions > 0 else 0
-#         student_attendance[student.user.userid] = {
-#             'count': attendance_count,
-#             'percentage': round(attendance_percentage, 2),
-#         }
-    
-#     if request.method == 'POST':
-#         selected_students = request.POST.getlist('attendance')
-#         current_date = request.POST.get('date')
-#         session = request.POST.get('session')
-
-#         try:
-#             with transaction.atomic():
-#                 for student in students:
-#                     status = student.user.userid in selected_students
-
-#                     # Determine the increment value based on book_type
-#                     increment_value = int(attendance_book.book_type)
-#                     # print(increment_value)
-
-#                     # Check if a record already exists for the same student, date, and session
-#                     existing_record = AttendanceRecord.objects.filter(
-#                         attendance_book=attendance_book,
-#                         student=student,
-#                         date=current_date,
-#                         session=session
-#                     ).first()
-
-#                     if existing_record:
-#                         # Update the existing record's status and count
-#                         existing_record.status = status
-#                         existing_record.count = student.attendancerecord_set.filter(status=True).count() + (
-#                             increment_value if status else 0
-#                         )
-#                         existing_record.save()
-#                     else:
-#                         # Create a new record if it doesn't exist
-#                         AttendanceRecord.objects.create(
-#                             attendance_book=attendance_book,
-#                             student=student,
-#                             date=current_date,
-#                             session=session,
-#                             status=status,
-#                             count=student.attendancerecord_set.filter(status=True).count() + (
-#                                 increment_value if status else 0
-#                             )
-#                         )
-            
-#             messages.success(request, 'Attendance Marked Successfully')
-
-#         except Exception as e:
-#             # Catch any errors and show a message to the user
-#             messages.error(request, f'Error occurred while marking attendance: {str(e)}')
-#         return redirect('teacher_view_attendance_records',pk=pk)
-
-#     return render(request, 'teacher/mark_attendance.html', {
-#         'attendance_book': attendance_book,
-#         'students': students,
-#         'attendance_records': attendance_records,
-#         'records_by_date_session': records_by_date_session,
-#         'student_attendance': student_attendance,
-#         'total_sessions': total_sessions,
-#     })
-
+# Teacher Mark Attendance
 @login_required
 @role_required(['teacher'])
 def teacher_mark_attendance(request, pk):
@@ -1441,10 +1396,15 @@ def send_absent_sms_view(request):
     if request.method == 'POST':
         selected_date = request.POST.get('selected_date')  # Assume date input in 'YYYY-MM-DD' format
         absentee_details = get_absent_details_by_date(selected_date)
+        abcount = int(len(absentee_details))
         
         if absentee_details:
-            send_sms_to_absentees(absentee_details)
-            messages.success(request, f'SMS sent to Absentees')
+            res = send_sms_to_absentees(absentee_details)
+            print(res)
+            if res is None:
+                messages.error(request, f'Error while sending SMS, Not sent to {abcount} Absentees')
+            else:
+                messages.success(request, f'SMS sent to {abcount} Absentees')
             return render(request, 'administrator/send_sms.html')
         else:
             messages.error(request, f'No Absentees found')
@@ -1458,3 +1418,53 @@ def custom_404_view(request, exception):
 
 def custom_500_view(request):
     return render(request, '500.html', status=500)
+
+
+# View Notifications
+@login_required
+@role_required(['admin','teacher'])
+def notification_list(request):
+    notifications = Notification.objects.all().order_by('-created_at')
+    return render(request, 'teacher/notifications.html', {'notifications': notifications})
+
+
+
+#====================== STUDENT MODULE ===================================================
+
+def student_login(request):
+    if request.method == 'POST':
+        usn = request.POST.get('usn')
+        dob = request.POST.get('dob')
+
+        try:
+            # Fetch the student using USN and DOB
+            student = Student.objects.get(usn=usn, dob=dob)
+            
+            # Retrieve all attendance books assigned to this student
+            attendance_books = student.attendancebook_set.all()
+            
+            # Calculate total, attended classes, and percentage for each book
+            attendance_data = []
+            for book in attendance_books:
+                total_classes = AttendanceRecord.objects.filter(attendance_book=book, student=student).count()
+                attended_classes = AttendanceRecord.objects.filter(attendance_book=book, student=student, status=True).count()
+                percentage = (attended_classes / total_classes) * 100 if total_classes > 0 else 0
+
+                attendance_data.append({
+                    'book': book,
+                    'total_classes': total_classes,
+                    'attended_classes': attended_classes,
+                    'percentage': round(percentage, 2),
+                })
+            
+            # Add success message
+            messages.success(request, f'Welcome {student.user.fullname}, your attendance records have been loaded successfully.')
+
+            return render(request, 'student/attendance.html', {'attendance_data': attendance_data, 'student': student})
+        
+        except Student.DoesNotExist:
+            # Add error message
+            messages.error(request, 'No student found with the provided USN and DOB. Please try again.')
+            return render(request, 'student/login.html')
+    
+    return render(request, 'student/login.html')

@@ -72,13 +72,13 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'manjunathdevadiga131@gmail.com'
-EMAIL_HOST_PASSWORD = 'dmrgborknxhxkvbl'
-DEFAULT_FROM_EMAIL = 'Manjunath Devadiga <manjunathdevadiga131@gmail.com>'
+EMAIL_HOST_USER = 'attendancebhandarkarsollege@gmail.com'
+EMAIL_HOST_PASSWORD = 'zxbwjaxxfzzxkudv'
+DEFAULT_FROM_EMAIL = 'Manjunath Devadiga <attendancebhandarkarsollege@gmail.com>'
 
-TWILIO_ACCOUNT_SID = 'AC0f366c91d418587e0bc172fcd63950b9'
-TWILIO_AUTH_TOKEN = '847fb9fd63ba5e22512e467f99423ac6'
-TWILIO_PHONE_NUMBER = '+16502002116'  # Your Twilio phone number
+TWILIO_ACCOUNT_SID = 'AC7d92be6dea8922f508c11a4d747c6e0b'
+TWILIO_AUTH_TOKEN = 'b00f8648ca32e2a62f30e6e0633b5616'
+TWILIO_PHONE_NUMBER = '+14025125831'  # Your Twilio phone number
 
 CELERY_BEAT_SCHEDULE = {
     'send-absent-sms-daily': {

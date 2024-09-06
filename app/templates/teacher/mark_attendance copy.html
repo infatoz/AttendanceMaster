@@ -127,7 +127,11 @@
                   
                   <th data-name="reg_no">Reg No.</th>
             <th data-name="photo">Photo</th>
-            
+            {% for date, sessions in records_by_date_session.items %} 
+                {% for session in sessions %}
+                    <th data-name="date_session_{{date}}_{{session}}">{{ date }} <br/>(Session-{{ session }})</th>
+                {% endfor %} 
+            {% endfor %}
             <th data-name="total_count">Total<br/>Count</th>
             <th data-name="attendance_percentage">Attendance<br/>(%)</th>
             <th data-name="mark_attendance">Mark<br/>Attendance</th>
@@ -147,7 +151,16 @@
                     /><br/>
                     <p><strong>{{ student.user.fullname }}</strong></p>
                   </td>
+                  {% for date, sessions in records_by_date_session.items %} 
+                  {% for session, records in sessions.items %}
                   
+                        {% if records|get_item:student.user.userid == 'A' %}
+                        <td class="bg-danger-subtle">{{ records|get_item:student.user.userid }}</td>
+                        {% else %}
+                        <td>{{ records|get_item:student.user.userid }}</td>
+                  {% endif %}
+                  {% endfor %} 
+                  {% endfor %}
                   <td>
                     <strong>{{student_attendance|get_item:student.user.userid|get_item:'count'}}/{{total_sessions}}</strong>
                   </td>

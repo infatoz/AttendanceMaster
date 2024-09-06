@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django import forms
-from app.models import Admin, AttendanceBook, CustomUser, Student, Teacher, Department, Course
+from app.models import Admin, AttendanceBook, CustomUser, Notification, Student, Teacher, Department, Course
 
 
 # class UserLoginForm(AuthenticationForm):
@@ -31,14 +31,39 @@ class UserLoginForm(AuthenticationForm):
 
 
 
-class CustomUserCreationForm(UserCreationForm):
-    class Meta(UserCreationForm.Meta):
-        model = CustomUser
-        fields = ['userid', 'fullname', 'password1', 'phone_no','email']
+# class CustomUserCreationForm(UserCreationForm):
+#     class Meta(UserCreationForm.Meta):
+#         model = CustomUser
+#         fields = ['userid', 'fullname', 'password1', 'phone_no','email']
     
+#     def save(self, commit=True):
+#         user = super().save(commit=False)
+#         user.set_password(self.cleaned_data['password1'])
+#         if commit:
+#             user.save()
+#         return user
+
+class CustomUserCreationForm(forms.ModelForm):
+    password = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput,
+        strip=False,
+        help_text='Enter the password for the new user.'
+    )
+
+    class Meta:
+        model = CustomUser
+        fields = ['userid', 'fullname', 'password', 'phone_no', 'email']
+
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        if not password:
+            raise forms.ValidationError('Password is required.')
+        return password
+
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password1'])
+        user.set_password(self.cleaned_data['password'])
         if commit:
             user.save()
         return user
@@ -106,4 +131,15 @@ class StudentCSVUploadForm(forms.Form):
             raise forms.ValidationError("Only .csv files are allowed.")
 
         return file
+
+
+class NotificationForm(forms.ModelForm):
+    class Meta:
+        model = Notification
+        fields = ['title', 'description', 'attachment_link']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Title'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Description'}),
+            'attachment_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'Attachment Link (optional)'}),
+        }
 

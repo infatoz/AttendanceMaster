@@ -98,7 +98,7 @@
             {% csrf_token %}
             <div class="form-group mb-3">
               <label for="selected_date">Select Date</label>
-              <input name="selected_date" type="date" class="form-control" id="selected_date" placeholder="Password">
+              <input name="selected_date" type="date" class="form-control" id="selected_date" placeholder="Please select date to send sms" required>
             </div>
             <button type="submit" class="btn btn-sm btn-primary">Send SMS to Absentees</button>
         </form>

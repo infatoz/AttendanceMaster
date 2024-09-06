@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.home_view, name='home'),
     # path('', views.send_bulk_notifications_view, name='send_bulk_notifications_view'),
     path('login/', views.user_login, name='login'),
+    path('student_login/', views.student_login, name='student_login'),
     path('logout/', views.user_logout, name='logout'),
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),

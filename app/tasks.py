@@ -1,6 +1,8 @@
 from django.utils import timezone
 from app.models import AttendanceRecord
 from django.conf import settings
+from twilio.rest import Client
+
 
 def get_absent_details_by_date(selected_date):
     # Fetch all attendance records for the selected date where status is False (absent)
@@ -26,10 +28,11 @@ def get_absent_details_by_date(selected_date):
     
     return absentee_details
 
-from twilio.rest import Client
 
 
 def send_sms_to_absentees(absentee_details):
+
+    # print(absentee_details)
     # Initialize Twilio client
     client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
     
@@ -42,22 +45,27 @@ def send_sms_to_absentees(absentee_details):
         
         # Create message content
         session_details = ', '.join(
-            f"{session['subject_name']} (Code: {session['subject_code']}, Session: {session['session']})"
+            f"{session['subject_code']}-Class {session['session']}"
             for session in absent_sessions
         )
         
         message_content = (
-            f"Hello, {full_name} (UserID: {student_id}) was absent on the selected date for the following sessions: "
-            f"{session_details}. Please ensure they catch up on missed work."
+            f"Dear Parents, {full_name} (Student ID: {student_id}) was absent on\n"
+            f"{session_details}.\n-BCK"
         )
-        
-        # Send SMS
-        if parent_phoneno:  # Check if parent's phone number is available
-            message = client.messages.create(
-                body=message_content,
-                from_=settings.TWILIO_PHONE_NUMBER,
-                to=parent_phoneno
-            )
-            messages.append(message)
-    
-    return messages
+
+        # print(message_content)
+
+        try:
+            if parent_phoneno:  # Check if parent's phone number is available
+                message = client.messages.create(
+                    body=message_content,
+                    from_=settings.TWILIO_PHONE_NUMBER,
+                    to=parent_phoneno
+                )
+                messages.append(message)
+            return messages
+        except:
+            print("An exception occurred")
+            return None
+            
