@@ -27,8 +27,9 @@ SECRET_KEY = 'django-insecure-6i%=647)h((4ya1d6c*7447lplkb*s)&#9)5zltw)=ns4)0z%o
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+ALLOWED_HOSTS = ['*']
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -74,6 +75,10 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'manjunathdevadiga131@gmail.com'
 EMAIL_HOST_PASSWORD = 'dmrgborknxhxkvbl'
 DEFAULT_FROM_EMAIL = 'Manjunath Devadiga <manjunathdevadiga131@gmail.com>'
+
+TWILIO_ACCOUNT_SID = 'AC0f366c91d418587e0bc172fcd63950b9'
+TWILIO_AUTH_TOKEN = '847fb9fd63ba5e22512e467f99423ac6'
+TWILIO_PHONE_NUMBER = '+16502002116'  # Your Twilio phone number
 
 CELERY_BEAT_SCHEDULE = {
     'send-absent-sms-daily': {
@@ -161,7 +166,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Define where to collect static files
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

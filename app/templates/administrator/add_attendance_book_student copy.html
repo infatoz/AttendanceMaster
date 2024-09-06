@@ -1,0 +1,187 @@
+{% extends "administrator/base.html" %}
+{% block title %} Add Students to Attendance Book {% endblock title %}
+{% block content %}
+
+<div class="pagetitle">
+  <h1>Add Students to Attendance Book</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'view_attendance_books' %}">Attendance Books</a></li>
+      <li class="breadcrumb-item">Add Students to Attendance Book</li>
+    </ol>
+  </nav>
+</div>
+
+<section class="section">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Select Students to Attendance Book</h5>
+          <form method="post" id="attendanceForm">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-primary mb-3">
+              Add Students & Finish<i class="bi bi-check-circle ms-2"></i>
+            </button>
+            <div class="row">
+              <div class="col-md-6">
+                <input type="text" id="studentSearch" class="form-control mb-2" placeholder="Search Students">
+                <input type="text" id="courseSearch" class="form-control mb-2" placeholder="Search by Course">
+                <input type="text" id="yearSearch" class="form-control mb-2" placeholder="Search by Year">
+                <input type="text" id="sectionSearch" class="form-control mb-2" placeholder="Search by Section">
+                <ul class="list-group" id="studentList">
+                  {% for student in students %}
+                  <li class="list-group-item">
+                    <input type="checkbox" name="students" value="{{ student.user.userid }}" class="studentCheckbox">
+                    <img src="{{ student.photo_url }}" alt="{{ student.user.fullname }}" style="height: 50px; margin-right: 10px;">
+                    {{ student.user.userid }} - {{ student.user.fullname }} - {{ student.course.name }}  - {{ student.section }}
+                  </li>
+                  {% endfor %}
+                </ul>
+                <button type="button" id="loadMore" class="btn btn-link">Load more</button>
+              </div>
+              <div class="col-md-6">
+                <h6>Selected Students:</h6>
+                <ul class="list-group" id="selectedStudentsList">
+                  <!-- Selected students will appear here -->
+                </ul>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  $(document).ready(function () {
+    var page = 1;
+
+    function fetchStudents(query, queryCourse, queryYear, querySection,page) {
+      $.ajax({
+        url: "{% url 'filter_students' %}",
+        data: { query: query, queryCourse:queryCourse, queryYear:queryYear, querySection:querySection, page: page },
+        success: function (data) {
+          var studentList = $("#studentList");
+          if (page === 1) {
+            studentList.empty();
+          }
+          data.students.forEach(function (student) {
+            studentList.append(
+              `<li class="list-group-item">
+                <input type="checkbox" class="studentCheckbox" value="${student.userid}">
+                <img src="${student.photo_url}" alt="${student.fullname}" style="height: 50px; margin-right: 10px;">
+                ${student.userid}- ${student.fullname} - ${student.course} - ${student.year} - ${student.section}
+              </li>`
+            );
+          });
+          if (!data.has_next) {
+            $("#loadMore").hide();
+          } else {
+            $("#loadMore").show();
+          }
+        }
+      });
+    }
+
+    // Initial load
+    fetchStudents('','','', '', page);
+
+    // Search functionality
+    $("#studentSearch").on('input', function () {
+      // var query = $(this).val();
+      // var queryCourse = $(this).val();
+      // var queryYear = $(this).val();
+      // var querySection = $(this).val();
+      var query = $(this).val();
+      var queryCourse = $("#courseSearch").val();
+      var queryYear = $("#yearSearch").val();
+      var querySection = $("#sectionSearch").val();
+      page = 1;
+      fetchStudents(query, queryCourse, queryYear, querySection,page);
+    });
+    $("#courseSearch").on('input', function () {
+      // var query = $(this).val();
+      // var queryCourse = $(this).val();
+      // var queryYear = $(this).val();
+      // var querySection = $(this).val();
+      var query = $("#studentSearch").val();
+      var queryCourse = $(this).val();
+      var queryYear = $("#yearSearch").val();
+      var querySection = $("#sectionSearch").val();
+      page = 1;
+      fetchStudents(query, queryCourse, queryYear, querySection,page);
+    });
+    $("#yearSearch").on('input', function () {
+      // var query = $(this).val();
+      // var queryCourse = $(this).val();
+      // var queryYear = $(this).val();
+      // var querySection = $(this).val();
+      var query = $("#studentSearch").val();
+      var queryCourse = $("#courseSearch").val();
+      var queryYear = $(this).val();
+      var querySection = $("#sectionSearch").val();
+      page = 1;
+      fetchStudents(query, queryCourse, queryYear, querySection,page);
+    });
+    $("#sectionSearch").on('input', function () {
+      var query = $("#studentSearch").val();
+      var queryCourse = $("#courseSearch").val();
+      var queryYear = $("#yearSearch").val();
+      var querySection = $(this).val();
+      page = 1;
+      fetchStudents(query, queryCourse, queryYear, querySection,page);
+    });
+
+    // Load more functionality
+    $("#loadMore").click(function () {
+      page++;
+      // var query = $("#studentSearch").val();
+      // var queryCourse = $("#courseSearch").val();
+      // var queryYear = $("#yearSearch").val();
+      // var querySection = $("#sectionSearch").val();
+      var query = $("#studentSearch").val();
+      var queryCourse = $("#courseSearch").val();
+      var queryYear = $("#yearSearch").val();
+      var querySection = $("#sectionSearch").val();
+      fetchStudents(query, queryCourse, queryYear, querySection,page);
+    });
+
+    // Handle student selection
+    $(document).on('change', '.studentCheckbox', function () {
+      var selectedList = $("#selectedStudentsList");
+      if (this.checked) {
+        selectedList.append(
+          `<li class="list-group-item" data-userid="${this.value}">
+            ${$(this).next('img').prop('outerHTML')}
+            ${$(this).closest('li').text()}
+          </li>`
+        );
+      } else {
+        selectedList.find(`li[data-userid="${this.value}"]`).remove();
+      }
+    });
+
+    // Handle form submission
+$("#attendanceForm").submit(function (event) {
+    event.preventDefault();
+    var selectedStudents = $("#selectedStudentsList li").map(function () {
+        return $(this).data('userid');
+    }).get();
+
+    // Append a hidden input with the list of selected students as a comma-separated string
+    $('<input>').attr({
+        type: 'hidden',
+        name: 'students',
+        value: selectedStudents.join(',')  // Join array to a comma-separated string
+    }).appendTo(this);
+
+    // Submit the form
+    this.submit();
+});
+
+  });
+</script>
+
+{% endblock content %}

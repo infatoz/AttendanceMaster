@@ -3,7 +3,7 @@ from . import views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    # path('', views.user_login, name='home'),
+    path('', views.home_view, name='home'),
     # path('', views.send_bulk_notifications_view, name='send_bulk_notifications_view'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
@@ -25,6 +25,7 @@ urlpatterns = [
     path('administrator/dashboard/teacher/edit/<str:teacher_id>/', views.edit_teacher, name='edit_teacher'),
     path('administrator/dashboard/teacher/delete/<str:teacher_id>/', views.delete_teacher, name='delete_teacher'),
     path('administrator/dashboard/students', views.view_students, name='view_students'),
+    path('administrator/dashboard/students/filter', views.filter_students, name='filter_students'),
     path('administrator/dashboard/student/add', views.add_student, name='add_student'),
     path('administrator/dashboard/student/upload', views.upload_students_csv, name='upload_students_csv'),
     path('administrator/dashboard/student/edit/<str:student_id>/', views.edit_student, name='edit_student'),
