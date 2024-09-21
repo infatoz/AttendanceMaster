@@ -50,6 +50,21 @@
       </ul>
       {% endif %}
 
+      <div
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-exclamation-octagon me-1"></i>
+          <b>Important Note: </b><br>
+          Please don't click on back button & do not refresh the page. Select the Staff (Select atleast 1 Staff to Attendance Book, Don't leave empty) and Confirm, then click on <b>Add Teacher & Next</b> button to add Students in next step.
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">Select Teachers to Attendance Book</h5>
@@ -119,7 +134,12 @@
 <script>
   $(document).ready(function () {
     // Initialize DataTables
-    $("#teachersTable").DataTable();
+    $("#teachersTable").DataTable({
+      pageLength: 150,
+      lengthMenu: [150,500, 1000, 1500, 2000, 2500, 3000,4000,5000],
+      searching:false
+    }
+    );
 
     // Select All Teachers
     $("#selectAllTeachers").click(function () {

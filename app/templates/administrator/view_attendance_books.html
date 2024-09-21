@@ -74,8 +74,9 @@
           <h5 class="card-title">All Attendance Books</h5>
 
           <table
+          style="width: 100%;"
             id="attendanceBooksTable"
-            class="table table-bordered datatable"
+            class="table table-bordered display wrap"
           >
             <thead>
               <tr>
@@ -85,7 +86,7 @@
                 <th>Book Type</th>
                 <!-- <th>Created At</th> -->
                 <th>Teachers</th>
-                <!-- <th>Students</th> -->
+                <th>Students Count</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -95,22 +96,19 @@
                 <td>{{ book.id }}</td>
                 <td>{{ book.name }}</td>
                 <td>{{ book.book_code }}</td>
+                <!-- <td>{{ book.book_type }}</td> -->
                 <td>{{ book.get_book_type_display }}</td>
                 <!-- <td>{{ book.created_at }}</td> -->
                 <td>
                   <ul>
                     {% for teacher in book.teachers.all %}
-                    <li>{{ teacher.user.fullname }}</li>
+                    <li>{{ teacher.user.fullname }} - [{{ teacher.user.userid }}]</li>
                     {% endfor %}
                   </ul>
                 </td>
-                <!-- <td>
-                  <ul>
-                    {% for student in book.students.all %}
-                    <li>{{ student.user.fullname }}</li>
-                    {% endfor %}
-                  </ul>
-                </td> -->
+                <td>
+                  {{ book.students.count }}
+                </td>
                 <td>
                   <div class="btn-group" role="group" aria-label="Menu">
                   <a href="{% url 'mark_attendance' book.id  %}" class="btn btn-sm btn-outline-primary" role="button"><i class="bi bi-check-circle me-2"></i>Mark Attendance</a>
@@ -128,5 +126,19 @@
     </div>
   </div>
 </section>
+
+<script>
+  $(document).ready(function () {
+    $('#attendanceBooksTable').DataTable({
+      pageLength: 150,
+      lengthMenu: [150,500, 1000, 1500, 2000, 2500, 3000,4000,5000],
+      order: [[0, "desc"]],
+      paging: true,
+      scrollCollapse: false,
+        scrollX: true,
+        scrollY: false,
+    })
+  });
+</script>
 
 {% endblock content %}
