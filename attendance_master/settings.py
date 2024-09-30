@@ -80,6 +80,10 @@ TWILIO_ACCOUNT_SID = 'AC7d92be6dea8922f508c11a4d747c6e0b'
 TWILIO_AUTH_TOKEN = 'c1177fd9ad8db5170ce550cc64935f55'
 TWILIO_PHONE_NUMBER = '+14025125831'  # Your Twilio phone number
 
+# View All Absentees by Date
+TEXTLOCAL_API_KEY = 'MzkzMTVhNDc0NDU4NzQ0NDMxNWE0MTM3NGI3Mjc1MzE='
+TEXTLOCAL_SENDER_ID = 'TXTLCL'
+
 CELERY_BEAT_SCHEDULE = {
     'send-absent-sms-daily': {
         'task': 'app.tasks.send_bulk_sms_to_absentees',

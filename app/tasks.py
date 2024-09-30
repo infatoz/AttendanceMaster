@@ -6,7 +6,7 @@ from twilio.rest import Client
 
 def get_absent_details_by_date(selected_date):
     # Fetch all attendance records for the selected date where status is False (absent)
-    print(selected_date)
+    # print(selected_date)
     absentees = AttendanceRecord.objects.filter(date=selected_date, status=False)
     
     absentee_details = {}

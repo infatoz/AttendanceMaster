@@ -6,6 +6,7 @@ from datetime import datetime
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.urls import reverse, reverse_lazy
+import requests
 from app.forms import AddCourseForm, AddDepartmentForm, AttendanceBookForm, CustomUserCreationForm, NotificationForm, StudentCSVUploadForm, StudentRegistrationForm, TeacherCSVUploadForm, TeacherRegistrationForm,  UserLoginForm
 from django.contrib.auth.decorators import login_required
 from app.decorators import role_required
@@ -16,9 +17,8 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.shortcuts import render, redirect
 from .models import HOD, AttendanceRecord, Notification
 from django.core.paginator import Paginator
-from django.http import JsonResponse
 from django.db.models import Q
-from .tasks import get_absent_details_by_date, send_sms_to_absentees
+from .tasks import get_absent_details_by_date
 
 # Home Page
 def home_view(request):
@@ -1192,6 +1192,146 @@ def delete_course(request, course_id):
         return redirect('view_courses')
     return render(request, 'administrator/delete_course.html', {'course': course})
 
+
+
+def send_sms(phone_number, message):
+    """Send SMS via Textlocal API."""
+    url = "https://api.textlocal.in/send/"
+    payload = {
+        'apikey': settings.TEXTLOCAL_API_KEY,
+        'numbers': phone_number,
+        'message': message,
+        'sender': settings.TEXTLOCAL_SENDER_ID,
+    }
+    
+    response = requests.post(url, data=payload)
+    return response.json()
+
+# Helper function to send SMS via Textlocal API
+def send_bulk_sms(absentee_details, selected_date):
+    api_key = settings.TEXTLOCAL_API_KEY
+    sender = settings.TEXTLOCAL_SENDER_ID  # Ensure you are using a registered sender ID
+    messages = []
+
+    for student_id, student_data in absentee_details.items():
+        sessions_info = '\n'.join(
+            [f"Subject Code: {s['subject_code']}, Session: {s['session']}" for s in student_data['absent_sessions']]
+        )
+        message = f"Dear Parents,\n{student_data['full_name']} ({student_id}) was absent on {selected_date} for:\n{sessions_info}\nPrincipal, BCK"
+        messages.append({
+            'recipient': student_data['parent_phoneno'],
+            'message': message
+        })
+
+    # Send messages
+    sent_count = 0
+    for msg in messages:
+        response = requests.post('https://api.textlocal.in/send/', {
+            'apikey': api_key,
+            'numbers': msg['recipient'],
+            'message': msg['message'],
+            'sender': sender
+        })
+
+        response_json = response.json()
+        if response_json.get('status') == 'success':
+            sent_count += 1
+        else:
+            return False, response_json.get('errors', [{'message': 'Unknown error'}])[0]['message']
+
+    return True, sent_count
+
+
+def send_absentee_sms(request):
+    if request.method == 'POST':
+        selected_date = request.POST.get('selected_date')
+        absentee_details = get_absent_details_by_date(selected_date)
+
+        # Call the helper function to send SMS
+        success, result = send_bulk_sms(absentee_details, selected_date)
+
+        if success:
+            return JsonResponse({'success': True, 'sent_count': result})
+        else:
+            return JsonResponse({'success': False, 'error': result})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+def view_attendnace_report(request):
+    absentee_details = None
+    selected_date = None
+    sms_sent_count = 0
+
+    if request.method == 'POST':
+        selected_date = request.POST.get('selected_date')
+        
+        # Get absentees by selected date
+        absentee_details = get_absent_details_by_date(selected_date)  
+        
+        # Check if the 'send_sms' button was clicked
+        if 'send_sms' in request.POST and absentee_details:
+            for student_id, student_data in absentee_details.items():
+                # Create SMS message
+                absent_sessions = "\n".join(
+                    [f"{session['subject_name']} (Code: {session['subject_code']}) Session: {session['session']}"
+                    for session in student_data['absent_sessions']]
+                )
+                message = (
+                    f"Dear Parents,\n"
+                    f"{student_data['full_name']} ({student_id}) was absent on {selected_date} for the following sessions:\n"
+                    f"{absent_sessions}"
+                )
+                
+                # Send SMS
+                response = send_sms("+91"+student_data['parent_phoneno'], message)
+                if response['status'] == 'success':
+                    sms_sent_count += 1
+                else:
+                    messages.error(request, f"Failed to send SMS to {student_data['full_name']}.")
+
+            # Display success message
+            if sms_sent_count:
+                messages.success(request, f"SMS sent to {sms_sent_count} parents successfully.")
+            else:
+                messages.error(request, "No SMS was sent due to errors.")
+
+    context = {
+        'absentee_details': absentee_details,
+        'selected_date': selected_date,
+    }
+    return render(request, 'administrator/view_attendnace_report.html', context)
+
+def send_absent_sms_view(request):
+    if request.method == 'POST':
+        selected_date = request.POST.get('selected_date')  # Assume date input in 'YYYY-MM-DD' format
+        absentee_details = get_absent_details_by_date(selected_date)
+        print(absentee_details)
+        abcount = int(len(absentee_details))
+        
+        if absentee_details:
+            # res = send_sms_to_absentees(absentee_details,selected_date)
+            res = None
+            print(res)
+            if res is None:
+                messages.error(request, f'Error while sending SMS, Not sent to {abcount} Absentees')
+            else:
+                messages.success(request, f'SMS sent to {abcount} Absentees')
+            return render(request, 'administrator/send_sms.html')
+        else:
+            messages.error(request, f'No Absentees found')
+            return render(request, 'administrator/send_sms.html')
+    
+    return render(request, 'administrator/send_sms.html')
+
+
+
+def custom_404_view(request, exception):
+    return render(request, '404.html', status=404)
+
+def custom_500_view(request):
+    return render(request, '500.html', status=500)
+
+
 #======================== TEACHER VIEWS ==========================================
 
 # Teacher Dashboard
@@ -1390,34 +1530,6 @@ def teacher_view_attendance_records(request, pk):
         'total_sessions':total_sessions
     })
 
-
-
-def send_absent_sms_view(request):
-    if request.method == 'POST':
-        selected_date = request.POST.get('selected_date')  # Assume date input in 'YYYY-MM-DD' format
-        absentee_details = get_absent_details_by_date(selected_date)
-        abcount = int(len(absentee_details))
-        
-        if absentee_details:
-            res = send_sms_to_absentees(absentee_details,selected_date)
-            print(res)
-            if res is None:
-                messages.error(request, f'Error while sending SMS, Not sent to {abcount} Absentees')
-            else:
-                messages.success(request, f'SMS sent to {abcount} Absentees')
-            return render(request, 'administrator/send_sms.html')
-        else:
-            messages.error(request, f'No Absentees found')
-            return render(request, 'administrator/send_sms.html')
-    
-    return render(request, 'administrator/send_sms.html')
-
-
-def custom_404_view(request, exception):
-    return render(request, '404.html', status=404)
-
-def custom_500_view(request):
-    return render(request, '500.html', status=500)
 
 
 # View Notifications
