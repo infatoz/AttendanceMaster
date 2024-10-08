@@ -771,7 +771,7 @@ def add_attendance_book_teacher(request, pk):
 @role_required(['admin'])
 def add_attendance_book_student(request, pk):
     attendance_book = get_object_or_404(AttendanceBook, pk=pk)
-    students = Student.objects.all()[:50]  # Initial load with a limit for performance
+    students = Student.objects.all()[:150]  # Initial load with a limit for performance
 
     if request.method == 'POST':
         # Get selected students as a comma-separated string and split into a list
@@ -823,7 +823,7 @@ def filter_students(request):
         students = students.filter(section__icontains=querySection)
 
     # Paginate the filtered results
-    paginator = Paginator(students, 50)  # Show 50 students per page
+    paginator = Paginator(students, 150)  # Show 50 students per page
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
@@ -1399,7 +1399,7 @@ def send_absent_sms_view(request):
         abcount = int(len(absentee_details))
         
         if absentee_details:
-            res = send_sms_to_absentees(absentee_details)
+            res = send_sms_to_absentees(absentee_details,selected_date)
             print(res)
             if res is None:
                 messages.error(request, f'Error while sending SMS, Not sent to {abcount} Absentees')
