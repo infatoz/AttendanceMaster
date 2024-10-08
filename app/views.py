@@ -1,3 +1,5 @@
+from itertools import islice
+import json
 from django.conf import settings
 from django.http import JsonResponse
 from django.utils import timezone
@@ -6,6 +8,11 @@ from datetime import datetime
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.urls import reverse, reverse_lazy
+import requests
+import urllib.request
+import urllib.parse
+
+import urllib3
 from app.forms import AddCourseForm, AddDepartmentForm, AttendanceBookForm, CustomUserCreationForm, NotificationForm, StudentCSVUploadForm, StudentRegistrationForm, TeacherCSVUploadForm, TeacherRegistrationForm,  UserLoginForm
 from django.contrib.auth.decorators import login_required
 from app.decorators import role_required
@@ -16,9 +23,8 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.shortcuts import render, redirect
 from .models import HOD, AttendanceRecord, Notification
 from django.core.paginator import Paginator
-from django.http import JsonResponse
 from django.db.models import Q
-from .tasks import get_absent_details_by_date, send_sms_to_absentees
+from .tasks import get_absent_details_by_date
 
 # Home Page
 def home_view(request):
@@ -1192,6 +1198,310 @@ def delete_course(request, course_id):
         return redirect('view_courses')
     return render(request, 'administrator/delete_course.html', {'course': course})
 
+
+# USED
+def send_sms(phone_number, message):
+    """Send SMS via Textlocal API."""
+    url = "https://api.textlocal.in/send/"
+    payload = {
+        'apikey': settings.TEXTLOCAL_API_KEY,
+        'numbers': phone_number,
+        'message': message,
+        'sender': settings.TEXTLOCAL_SENDER_ID,
+    }
+    
+    response = requests.post(url, data=payload)
+    return response.json()
+
+# Helper function to send SMS via Textlocal API
+#USED
+# def send_bulk_sms(absentee_details, selected_date):
+#     api_key = settings.TEXTLOCAL_API_KEY
+#     sender = settings.TEXTLOCAL_SENDER_ID  # Ensure you are using a registered sender ID
+#     messages = []
+
+#     for student_id, student_data in absentee_details.items():
+#         sessions_info = '\n'.join(
+#             [f"Subject Code: {s['subject_code']}, Session: {s['session']}" for s in student_data['absent_sessions']]
+#         )
+#         # message = f"Dear Parents,\n{student_data['full_name']} ({student_id}) was absent on {selected_date} for:\n{sessions_info}\nPrincipal, BCK"
+        
+#         absent_class_count = 7
+#         message = (
+#             f"Dear Parent,\n"
+#             f"This is to inform you that {student_data['full_name']} ({student_id}) was absent for {absent_class_count} classes on {selected_date}.\n"
+#             f"Regards,\n"
+#             f"Principal, BCK"
+#         )
+
+#         print(message)
+
+#         messages.append({
+#             'recipient': "91" + student_data['parent_phoneno'],
+#             'message': message
+#         })
+
+
+#     # Send messages
+#     sent_count = 0
+#     for msg in messages:
+#         # response = requests.post('https://api.textlocal.in/send/', {
+#         #     'apikey': api_key,
+#         #     'numbers': msg['recipient'],
+#         #     'message': msg['message'],
+#         #     'sender': sender
+#         # })
+
+#         # response_json = response.json()
+
+#         data =  urllib3.parse.urlencode({'apikey': api_key, 'numbers': msg['recipient'],
+#         'message' : msg['message'], 'sender': sender})
+#         data = data.encode('utf-8')
+#         request = urllib3.request.Request("https://api.textlocal.in/send/?")
+#         f = urllib.request.urlopen(request, data)
+#         fr = f.read()
+#         print(fr)
+#         # return(fr)
+
+
+#         # if response_json.get('status') == 'success':
+#         if response_json.get('status') == 'success':
+#             sent_count += 1
+#         else:
+#             return False, response_json.get('errors', [{'message': 'Unknown error'}])[0]['message']
+
+#     return True, sent_count
+
+
+
+# def send_bulk_sms(absentee_details, selected_date):
+#     api_key = settings.TEXTLOCAL_API_KEY
+#     sender = settings.TEXTLOCAL_SENDER_ID  # Ensure you are using a registered sender ID
+#     messages = []
+
+#     for student_id, student_data in absentee_details.items():
+#         # Dynamically calculate the number of absent sessions (classes)
+#         absent_class_count = len(student_data['absent_sessions'])
+
+#         sessions_info = '\n'.join(
+#             [f"Subject Code: {s['subject_code']}, Session: {s['session']}" for s in student_data['absent_sessions']]
+#         )
+        
+#         # Construct the message
+#         # message = (
+#         #     f"Dear Parent,\n"
+#         #     f"This is to inform you that {student_data['full_name']} ({student_id}) was absent for {absent_class_count} classes on {selected_date}.\n"
+#         #     f"Regards,\n"
+#         #     f"Principal, BCK"
+#         # )
+
+#         message = (
+#             f"Dear Parent,\nThis is to inform you that {student_data['full_name']} ({student_id}) was absent for {absent_class_count} classes on {selected_date}.\nRegards,\nPrincipal, BCK"
+#         )
+
+#         print(message)
+
+#         # Append the message and recipient details
+#         messages.append({
+#             'recipient': "91" + student_data['parent_phoneno'],
+#             'message': message
+#         })
+
+#     # Send messages
+#     sent_count = 0
+#     for msg in messages:
+#         # Prepare the data for the POST request
+#         data = urllib.parse.urlencode({
+#             'apikey': api_key,
+#             'numbers': msg['recipient'],
+#             'message': msg['message'],
+#             'sender': sender
+#         }).encode('utf-8')
+        
+#         # Make the POST request to Textlocal API
+#         request = urllib.request.Request("https://api.textlocal.in/send/")
+#         try:
+#             with urllib.request.urlopen(request, data) as response:
+#                 response_text = response.read().decode('utf-8')
+#                 response_json = json.loads(response_text)
+                
+#                 # Check the status of the response
+#                 if response_json.get('status') == 'success':
+#                     sent_count += 1
+#                 else:
+#                     error_message = response_json.get('errors', [{'message': 'Unknown error'}])[0]['message']
+#                     return False, error_message
+#         except Exception as e:
+#             return False, str(e)
+
+#     return True, sent_count
+
+def send_bulk_sms(absentee_details, selected_date):
+    api_key = settings.TEXTLOCAL_API_KEY
+    sender = settings.TEXTLOCAL_SENDER_ID  # Ensure you are using a registered sender ID
+    messages = []
+
+    # Convert selected_date from '2024-10-31' to '31/10/24'
+    formatted_date = datetime.strptime(selected_date, '%Y-%m-%d').strftime('%d/%m/%y')
+
+    for student_id, student_data in absentee_details.items():
+        # Dynamically calculate the number of absent sessions (classes)
+        absent_class_count = len(student_data['absent_sessions'])
+
+        # Construct the message
+        message = (
+            f"Dear Parent,\nThis is to inform you that {student_data['full_name']} ({student_id}) was absent for {absent_class_count} classes on {formatted_date}.\nRegards,\nPrincipal, BCK"
+        )
+
+        # message = (
+        #     f"Dear Parent, This is to inform you that your child was absent on {selected_date} during one or more classes. Please contact the college if you have any questions. Regards, Principal, BCK"
+        # )
+
+        # message = (
+        #     f"Dear Parent, This is to inform you that Manjunatha (1CR22MC045) was absent for 7 classes on 01/10/24. Regards, Principal, BCK"
+        # )
+
+        # print(message)
+
+        # Append the message and recipient details
+        messages.append({
+            'recipient': "91" + student_data['parent_phoneno'],
+            'message': message
+        })
+
+    # Send messages
+    sent_count = 0
+    # for msg in islice(messages, 100):
+    for msg in messages:
+        # Prepare the data for the GET request by constructing the query string
+        params = {
+            'message': msg['message']
+        }
+        
+        # URL encode the parameters
+        query_string = urllib.parse.urlencode(params)
+        url = f" https://api.textlocal.in/send/?apiKey={api_key}&sender={sender}&numbers={msg['recipient']}&{query_string}"
+
+        print(url)
+
+        # Make the GET request to Textlocal API
+        try:
+            with urllib.request.urlopen(url) as response:
+                response_text = response.read().decode('utf-8')
+                response_json = json.loads(response_text)
+                
+                # Check the status of the response
+                if response_json.get('status') == 'success':
+                    sent_count += 1
+                else:
+                    error_message = response_json.get('errors', [{'message': 'Unknown error'}])[0]['message']
+                    return False, error_message
+        except Exception as e:
+            return False, str(e)
+
+    return True, sent_count
+
+# USED
+def send_absentee_sms(request):
+    if request.method == 'POST':
+        selected_date = request.POST.get('selected_date')
+        absentee_details = get_absent_details_by_date(selected_date)
+
+        # Call the helper function to send SMS
+        success, result = send_bulk_sms(absentee_details, selected_date)
+
+        if success:
+            return JsonResponse({'success': True, 'sent_count': result})
+        else:
+            return JsonResponse({'success': False, 'error': result})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+# USED
+def view_attendnace_report(request):
+    absentee_details = None
+    selected_date = None
+    sms_sent_count = 0
+
+    if request.method == 'POST':
+        selected_date = request.POST.get('selected_date')
+        # Convert selected_date from '2024-10-31' to '31/10/24'
+        formatted_date = datetime.strptime(selected_date, '%Y-%m-%d').strftime('%d/%m/%y')
+        
+        # Get absentees by selected date
+        absentee_details = get_absent_details_by_date(selected_date)
+        
+        # Check if the 'send_sms' button was clicked
+        if 'send_sms' in request.POST and absentee_details:
+            for student_id, student_data in absentee_details.items():
+                # Create SMS message
+                absent_sessions = "\n".join(
+                    [f"{session['subject_name']} (Code: {session['subject_code']}) Session: {session['session']}"
+                    for session in student_data['absent_sessions']]
+                )
+
+                absent_class_count = 7
+                message = (
+                    f"Dear Parent,\n"
+                    f"This is to inform you that {student_data['full_name']} ({student_id}) was absent for {absent_class_count} classes on {selected_date}.\n"
+                    f"Regards,\n"
+                    f"Principal, BCK"
+                )
+
+                print(message)
+                
+                # Send SMS
+                response = send_sms("91"+student_data['parent_phoneno'], message)
+                if response['status'] == 'success':
+                    sms_sent_count += 1
+                else:
+                    messages.error(request, f"Failed to send SMS to {student_data['full_name']}.")
+
+            # Display success message
+            if sms_sent_count:
+                messages.success(request, f"SMS sent to {sms_sent_count} parents successfully.")
+            else:
+                messages.error(request, "No SMS was sent due to errors.")
+
+    context = {
+        'absentee_details': absentee_details,
+        'selected_date': selected_date,
+    }
+    return render(request, 'administrator/view_attendance_report.html', context)
+
+
+def send_absent_sms_view(request):
+    if request.method == 'POST':
+        selected_date = request.POST.get('selected_date')  # Assume date input in 'YYYY-MM-DD' format
+        absentee_details = get_absent_details_by_date(selected_date)
+        print(absentee_details)
+        abcount = int(len(absentee_details))
+        
+        if absentee_details:
+            # res = send_sms_to_absentees(absentee_details,selected_date)
+            res = None
+            print(res)
+            if res is None:
+                messages.error(request, f'Error while sending SMS, Not sent to {abcount} Absentees')
+            else:
+                messages.success(request, f'SMS sent to {abcount} Absentees')
+            return render(request, 'administrator/send_sms.html')
+        else:
+            messages.error(request, f'No Absentees found')
+            return render(request, 'administrator/send_sms.html')
+    
+    return render(request, 'administrator/send_sms.html')
+
+
+
+def custom_404_view(request, exception):
+    return render(request, '404.html', status=404)
+
+def custom_500_view(request):
+    return render(request, '500.html', status=500)
+
+
 #======================== TEACHER VIEWS ==========================================
 
 # Teacher Dashboard
@@ -1392,6 +1702,7 @@ def teacher_view_attendance_records(request, pk):
 
 
 
+<<<<<<< HEAD
 def send_absent_sms_view(request):
     if request.method == 'POST':
         selected_date = request.POST.get('selected_date')  # Assume date input in 'YYYY-MM-DD' format
@@ -1420,6 +1731,8 @@ def custom_500_view(request):
     return render(request, '500.html', status=500)
 
 
+=======
+>>>>>>> dbbda97c56e94abe6ff2b2bd9e63d2e50f897b42
 # View Notifications
 @login_required
 @role_required(['admin','teacher'])

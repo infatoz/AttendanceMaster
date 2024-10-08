@@ -3,10 +3,14 @@ from app.models import AttendanceRecord
 from django.conf import settings
 from twilio.rest import Client
 
-
+# USED
 def get_absent_details_by_date(selected_date):
     # Fetch all attendance records for the selected date where status is False (absent)
+<<<<<<< HEAD
     print(selected_date)
+=======
+    # print(selected_date)
+>>>>>>> dbbda97c56e94abe6ff2b2bd9e63d2e50f897b42
     absentees = AttendanceRecord.objects.filter(date=selected_date, status=False)
     
     absentee_details = {}
