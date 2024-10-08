@@ -77,7 +77,7 @@
                 <th>Name</th>
                 <th>Book Code</th>
                 <th>Book Type</th>
-                <!-- <th>Created At</th> -->
+                <th>Student Count</th>
                 <th>Teachers</th>
                 <!-- <th>Students</th> -->
                 <th>Actions</th>
@@ -90,6 +90,7 @@
                 <td>{{ book.name }}</td>
                 <td>{{ book.book_code }}</td>
                 <td>{{ book.get_book_type_display }}</td>
+                <td>{{ book.students.count }}</td>
                 <!-- <td>{{ book.created_at }}</td> -->
                 <td>
                   <ul>

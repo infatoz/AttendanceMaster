@@ -1702,26 +1702,25 @@ def teacher_view_attendance_records(request, pk):
 
 
 
-<<<<<<< HEAD
-def send_absent_sms_view(request):
-    if request.method == 'POST':
-        selected_date = request.POST.get('selected_date')  # Assume date input in 'YYYY-MM-DD' format
-        absentee_details = get_absent_details_by_date(selected_date)
-        abcount = int(len(absentee_details))
+# def send_absent_sms_view(request):
+#     if request.method == 'POST':
+#         selected_date = request.POST.get('selected_date')  # Assume date input in 'YYYY-MM-DD' format
+#         absentee_details = get_absent_details_by_date(selected_date)
+#         abcount = int(len(absentee_details))
         
-        if absentee_details:
-            res = send_sms_to_absentees(absentee_details,selected_date)
-            print(res)
-            if res is None:
-                messages.error(request, f'Error while sending SMS, Not sent to {abcount} Absentees')
-            else:
-                messages.success(request, f'SMS sent to {abcount} Absentees')
-            return render(request, 'administrator/send_sms.html')
-        else:
-            messages.error(request, f'No Absentees found')
-            return render(request, 'administrator/send_sms.html')
+#         if absentee_details:
+#             res = send_sms_to_absentees(absentee_details,selected_date)
+#             print(res)
+#             if res is None:
+#                 messages.error(request, f'Error while sending SMS, Not sent to {abcount} Absentees')
+#             else:
+#                 messages.success(request, f'SMS sent to {abcount} Absentees')
+#             return render(request, 'administrator/send_sms.html')
+#         else:
+#             messages.error(request, f'No Absentees found')
+#             return render(request, 'administrator/send_sms.html')
     
-    return render(request, 'administrator/send_sms.html')
+#     return render(request, 'administrator/send_sms.html')
 
 
 def custom_404_view(request, exception):
@@ -1731,8 +1730,6 @@ def custom_500_view(request):
     return render(request, '500.html', status=500)
 
 
-=======
->>>>>>> dbbda97c56e94abe6ff2b2bd9e63d2e50f897b42
 # View Notifications
 @login_required
 @role_required(['admin','teacher'])
