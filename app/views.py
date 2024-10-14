@@ -1342,26 +1342,32 @@ def send_bulk_sms(absentee_details, selected_date):
     messages = []
 
     # Convert selected_date from '2024-10-31' to '31/10/24'
-    formatted_date = datetime.strptime(selected_date, '%Y-%m-%d').strftime('%d/%m/%y')
+    formatted_date = datetime.strptime(selected_date, '%Y-%m-%d').strftime('%d/%m/%Y')
+    print(formatted_date)
 
     for student_id, student_data in absentee_details.items():
         # Dynamically calculate the number of absent sessions (classes)
         absent_class_count = len(student_data['absent_sessions'])
 
+        # print(student_data['absent_sessions'])
+        absent_sessions = ",".join(
+                    [f"{session['session']}"
+                    for session in student_data['absent_sessions']]
+                )
+
+        # absent_class_count = 7
+        print(absent_sessions)
+        
         # Construct the message
+        # message = (
+        #     f"Dear Parent,\nThis is to inform you that {student_data['full_name']} ({student_id}) was absent for {absent_class_count} classes on {formatted_date}.\nRegards,\nPrincipal, BCK"
+        # )
+
         message = (
-            f"Dear Parent,\nThis is to inform you that {student_data['full_name']} ({student_id}) was absent for {absent_class_count} classes on {formatted_date}.\nRegards,\nPrincipal, BCK"
+            f"Dear Parent,\nThis is to inform you that {student_data['full_name'][:20]} ( {student_id[:15]}) was absent for {str(absent_class_count)[:1]} classes ( {absent_sessions[:14]}) on {formatted_date[:8]}.\nRegards,\nPrincipal, BCK"
         )
 
-        # message = (
-        #     f"Dear Parent, This is to inform you that your child was absent on {selected_date} during one or more classes. Please contact the college if you have any questions. Regards, Principal, BCK"
-        # )
-
-        # message = (
-        #     f"Dear Parent, This is to inform you that Manjunatha (1CR22MC045) was absent for 7 classes on 01/10/24. Regards, Principal, BCK"
-        # )
-
-        # print(message)
+        print(message)
 
         # Append the message and recipient details
         messages.append({
@@ -1381,8 +1387,8 @@ def send_bulk_sms(absentee_details, selected_date):
         # URL encode the parameters
         query_string = urllib.parse.urlencode(params)
         url = f" https://api.textlocal.in/send/?apiKey={api_key}&sender={sender}&numbers={msg['recipient']}&{query_string}"
-
-        print(url)
+        # url = f"test"
+        # print(url)
 
         # Make the GET request to Textlocal API
         try:
