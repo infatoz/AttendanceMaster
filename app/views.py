@@ -1749,12 +1749,14 @@ def notification_list(request):
 
 def student_login(request):
     if request.method == 'POST':
+        print(request.POST)
         usn = request.POST.get('usn')
         dob = request.POST.get('dob')
 
         try:
             # Fetch the student using USN and DOB
             student = Student.objects.get(usn=usn, dob=dob)
+            print(student,usn,dob)
             
             # Retrieve all attendance books assigned to this student
             attendance_books = student.attendancebook_set.all()
